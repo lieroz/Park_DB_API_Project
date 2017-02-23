@@ -1,10 +1,13 @@
 package db_project.controllers;
 
 import db_project.models.UserModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by lieroz on 23.02.17.
@@ -13,22 +16,50 @@ import javax.servlet.http.HttpSession;
 @RestController
 @RequestMapping("/api")
 public class UserController {
+    private static Map<Integer, UserModel> dbModel = new HashMap<>();
 
-    @RequestMapping(value = "/user", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public UserModel createUser(@RequestBody UserModel userModel, HttpSession httpSession) {
-        httpSession.setAttribute("about", userModel.getAbout());
-        httpSession.setAttribute("email", userModel.getEmail());
-        httpSession.setAttribute("fullname", userModel.getFullname());
-        httpSession.setAttribute("nickname", userModel.getNickname());
+    @RequestMapping(value = "/user/{nickname}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserModel> createUser(
+            @RequestBody UserModel userBody,
+            @PathVariable(value = "nickname") String nickname
+    ) {
+        dbModel.put(nickname.hashCode(), new UserModel(userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname));
 
-        return userModel;
+        return new ResponseEntity<>(dbModel.get(nickname.hashCode()), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/user/{nickname}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserModel viewProfile(@RequestParam(value = "about", defaultValue = "DEFAULT ABOUT") String about,
-                                 @RequestParam(value = "email", defaultValue = "DEFAULT EMAIL") String email,
-                                 @RequestParam(value = "fullname", defaultValue = "DEFAULT FULLNAME") String fullname,
-                                 @PathVariable(value = "nickname") String nickname) {
-        return new UserModel(about, email, fullname, nickname);
+    public ResponseEntity<UserModel> viewProfile(
+            @PathVariable(value = "nickname") String nickname
+    ) {
+        return new ResponseEntity<>(dbModel.get(nickname.hashCode()), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/user/{nickname}/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserModel> modifyProfile(
+            @RequestBody UserModel userBody,
+            @PathVariable(value = "nickname") String nickname
+    ) {
+        UserModel user = dbModel.get(nickname.hashCode());
+
+        if (userBody.getAbout() != null) {
+            user.setAbout(userBody.getAbout());
+        }
+
+        if (userBody.getEmail() != null) {
+            user.setEmail(userBody.getEmail());
+        }
+
+        if (userBody.getFullname() != null) {
+            user.setFullname(userBody.getFullname());
+        }
+
+        if (userBody.getNickname() != null) {
+            user.setNickname(userBody.getNickname());
+            dbModel.remove(nickname.hashCode());
+            dbModel.put(userBody.getNickname().hashCode(), new UserModel(user));
+        }
+
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }
