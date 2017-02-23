@@ -4,6 +4,7 @@ import db_project.models.UserModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -17,15 +18,21 @@ import java.util.Map;
 @RequestMapping("/api")
 public class UserController {
     private static Map<Integer, UserModel> dbModel = new HashMap<>();
+    private JdbcTemplate jdbcTemplate;
+
+    public UserController(JdbcTemplate template) {
+        this.jdbcTemplate= template;
+    }
 
     @RequestMapping(value = "/user/{nickname}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> createUser(
             @RequestBody UserModel userBody,
             @PathVariable(value = "nickname") String nickname
     ) {
-        dbModel.put(nickname.hashCode(), new UserModel(userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname));
-
-        return new ResponseEntity<>(dbModel.get(nickname.hashCode()), HttpStatus.CREATED);
+//        dbModel.put(nickname.hashCode(), new UserModel(userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname));
+        String SQL = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?);";
+        jdbcTemplate.update(SQL, userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname);
+        return new ResponseEntity<>(new UserModel(userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/user/{nickname}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
