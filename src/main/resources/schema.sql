@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS Users (
+  about VARCHAR(100),
+  email VARCHAR(100) UNIQUE,
+  fullname VARCHAR(100) UNIQUE,
+  nickname VARCHAR(100) PRIMARY KEY
+);

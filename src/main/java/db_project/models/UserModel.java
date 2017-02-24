@@ -14,14 +14,23 @@ public class UserModel {
     private String nickname;
 
     @JsonCreator
-    public UserModel(@JsonProperty("about") String about,
-                     @JsonProperty("email") String email,
-                     @JsonProperty("fullname") String fullname,
-                     @JsonProperty("nickname") String nickname) {
+    public UserModel(
+            @JsonProperty("about") String about,
+            @JsonProperty("email") String email,
+            @JsonProperty("fullname") String fullname,
+            @JsonProperty("nickname") String nickname
+    ) {
         this.about = about;
         this.email = email;
         this.fullname = fullname;
         this.nickname = nickname;
+    }
+
+    public UserModel(final UserModel rhs) {
+        this.about = rhs.getAbout();
+        this.email = rhs.getEmail();
+        this.fullname = rhs.getFullname();
+        this.nickname = rhs.getNickname();
     }
 
     public String getAbout() {
