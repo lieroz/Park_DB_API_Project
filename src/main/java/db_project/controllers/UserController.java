@@ -4,6 +4,7 @@ import db_project.models.UserModel;
 import db_project.services.UserService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,10 +49,14 @@ public class UserController {
     public ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
-        List<UserModel> users = null;
+        List<UserModel> users;
 
         try {
             users = service.getUserFromDb(nickname);
+
+            if (users.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

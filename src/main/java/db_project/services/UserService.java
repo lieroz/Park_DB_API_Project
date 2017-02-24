@@ -27,7 +27,7 @@ public class UserService {
         jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), user.getNickname());
     }
 
-    public final List<UserModel> getUserFromDb(final String nickname) throws DataAccessException {
+    public final List<UserModel> getUserFromDb(final String nickname) {
         final String sql = "SELECT * FROM Users WHERE nickname = ?";
 
         return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::readItem);
