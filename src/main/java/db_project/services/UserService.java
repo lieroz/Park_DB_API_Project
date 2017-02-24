@@ -1,7 +1,6 @@
 package db_project.services;
 
 import db_project.models.UserModel;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -33,35 +32,33 @@ public class UserService {
         return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::readItem);
     }
 
-    public final UserModel updateUserInfoFromDb(final UserModel user) {
-        final UserModel dbUserInfo = getUserFromDb(user.getNickname()).get(0);
+    public final void updateUserInfoFromDb(final UserModel user) {
         final StringBuilder sql = new StringBuilder("UPDATE Users SET");
         final List<Object> args = new ArrayList<>();
 
-        if (!user.getAbout().isEmpty()) {
+        if (user.getAbout() != null && !user.getAbout().isEmpty()) {
             sql.append(" about = ?,");
             args.add(user.getAbout());
-            dbUserInfo.setAbout(user.getAbout());
         }
 
-        if (!user.getEmail().isEmpty()) {
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
             sql.append(" email = ?,");
             args.add(user.getEmail());
-            dbUserInfo.setEmail(user.getEmail());
         }
 
-        if (!user.getFullname().isEmpty()) {
+        if (user.getFullname() != null && !user.getFullname().isEmpty()) {
             sql.append(" fullname = ?,");
             args.add(user.getFullname());
-            dbUserInfo.setFullname(user.getFullname());
+        }
+
+        if (args.isEmpty()) {
+            return;
         }
 
         sql.delete(sql.length() - 1, sql.length());
         sql.append(" WHERE nickname = ?");
         args.add(user.getNickname());
         jdbcTemplate.update(sql.toString(), args.toArray());
-
-        return dbUserInfo;
     }
 
     private static UserModel readItem(ResultSet rs, int rowNum) throws SQLException {

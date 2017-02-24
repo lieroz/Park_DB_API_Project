@@ -71,7 +71,23 @@ public class UserController {
             @PathVariable(value = "nickname") String nickname
     ) {
         user.setNickname(nickname);
-        user = service.updateUserInfoFromDb(user);
+
+        try {
+            service.updateUserInfoFromDb(user);
+            List<UserModel> users = service.getUserFromDb(nickname);
+
+            if (users.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+            user = users.get(0);
+
+        } catch (DuplicateKeyException ex) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         return new ResponseEntity<>(new UserModel(user), HttpStatus.OK);
     }
