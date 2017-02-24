@@ -7,8 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Created by lieroz on 23.02.17.
@@ -17,56 +18,42 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class UserController {
-    private static Map<Integer, UserModel> dbModel = new HashMap<>();
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public UserController(JdbcTemplate template) {
-        this.jdbcTemplate= template;
+    public UserController(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @RequestMapping(value = "/user/{nickname}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> createUser(
-            @RequestBody UserModel userBody,
+            @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
-//        dbModel.put(nickname.hashCode(), new UserModel(userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname));
-        String SQL = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?);";
-        jdbcTemplate.update(SQL, userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname);
-        return new ResponseEntity<>(new UserModel(userBody.getAbout(), userBody.getEmail(), userBody.getFullname(), nickname), HttpStatus.CREATED);
+        String sql = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?);";
+        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+        return new ResponseEntity<>(new UserModel(user.getAbout(), user.getEmail(), user.getFullname(), nickname), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/user/{nickname}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
-        return new ResponseEntity<>(dbModel.get(nickname.hashCode()), HttpStatus.OK);
+        String sql = "SELECT * FROM Users WHERE nickname = ?";
+        List<UserModel> users = jdbcTemplate.query(sql, new Object[]{nickname}, UserController::readItem);
+        return new ResponseEntity<>(users.get(0), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/user/{nickname}/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> modifyProfile(
-            @RequestBody UserModel userBody,
+            @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
-        UserModel user = dbModel.get(nickname.hashCode());
+        String sql = "UPDATE Users SET about = ?, email = ?, fullname = ? WHERE nickname = ?;";
+        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+        return new ResponseEntity<>(new UserModel(user.getAbout(), user.getEmail(), user.getFullname(), nickname), HttpStatus.OK);
+    }
 
-        if (userBody.getAbout() != null) {
-            user.setAbout(userBody.getAbout());
-        }
-
-        if (userBody.getEmail() != null) {
-            user.setEmail(userBody.getEmail());
-        }
-
-        if (userBody.getFullname() != null) {
-            user.setFullname(userBody.getFullname());
-        }
-
-        if (userBody.getNickname() != null) {
-            user.setNickname(userBody.getNickname());
-            dbModel.remove(nickname.hashCode());
-            dbModel.put(userBody.getNickname().hashCode(), new UserModel(user));
-        }
-
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    private static UserModel readItem(ResultSet rs, int rowNum) throws SQLException {
+        return new UserModel(rs.getString("about"), rs.getString("email"), rs.getString("fullname"), rs.getString("nickname"));
     }
 }
