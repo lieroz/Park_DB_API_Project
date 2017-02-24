@@ -1,6 +1,7 @@
 package db_project.services;
 
 import db_project.models.UserModel;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +22,12 @@ public class UserService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public final Integer insertUserIntoDb(final UserModel user) {
+    public final void insertUserIntoDb(final UserModel user) {
         final String sql = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?)";
-
-        return jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), user.getNickname());
+        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), user.getNickname());
     }
 
-    public final List<UserModel> getUserFromDb(final String nickname) {
+    public final List<UserModel> getUserFromDb(final String nickname) throws DataAccessException {
         final String sql = "SELECT * FROM Users WHERE nickname = ?";
 
         return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::readItem);

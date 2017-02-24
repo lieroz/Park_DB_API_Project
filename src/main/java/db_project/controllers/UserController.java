@@ -2,6 +2,8 @@ package db_project.controllers;
 
 import db_project.models.UserModel;
 import db_project.services.UserService;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,7 @@ public class UserController {
 
     public UserController(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        service = new UserService(jdbcTemplate);
+        this.service = new UserService(jdbcTemplate);
     }
 
     @RequestMapping(value = "/user/{nickname}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -31,9 +33,11 @@ public class UserController {
             @PathVariable(value = "nickname") String nickname
     ) {
         user.setNickname(nickname);
-        final Integer rowsAffected = service.insertUserIntoDb(user);
 
-        if (rowsAffected == 0) {
+        try {
+            service.insertUserIntoDb(user);
+
+        } catch (DuplicateKeyException ex) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
 
@@ -44,9 +48,12 @@ public class UserController {
     public ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
-        List<UserModel> users = service.getUserFromDb(nickname);
+        List<UserModel> users = null;
 
-        if (users.isEmpty()) {
+        try {
+            users = service.getUserFromDb(nickname);
+
+        } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
