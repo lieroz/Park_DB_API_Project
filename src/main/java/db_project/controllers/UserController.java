@@ -18,7 +18,7 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user/{nickname}")
 public class UserController {
     private final JdbcTemplate jdbcTemplate;
     private final UserService service;
@@ -28,7 +28,7 @@ public class UserController {
         this.service = new UserService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/user/{nickname}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> createUser(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
@@ -40,12 +40,15 @@ public class UserController {
 
         } catch (DuplicateKeyException ex) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         return new ResponseEntity<>(new UserModel(user), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/user/{nickname}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
@@ -65,7 +68,7 @@ public class UserController {
         return new ResponseEntity<>(users.get(0), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/user/{nickname}/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> modifyProfile(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname

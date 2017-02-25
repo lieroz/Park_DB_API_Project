@@ -26,11 +26,11 @@ public class UserModel {
         this.nickname = nickname;
     }
 
-    public UserModel(final UserModel rhs) {
-        this.about = rhs.getAbout();
-        this.email = rhs.getEmail();
-        this.fullname = rhs.getFullname();
-        this.nickname = rhs.getNickname();
+    public UserModel(final UserModel other) {
+        this.about = other.getAbout();
+        this.email = other.getEmail();
+        this.fullname = other.getFullname();
+        this.nickname = other.getNickname();
     }
 
     public String getAbout() {
