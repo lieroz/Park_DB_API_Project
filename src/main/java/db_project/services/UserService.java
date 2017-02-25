@@ -29,7 +29,7 @@ public class UserService {
     public final List<UserModel> getUserFromDb(final String nickname) {
         final String sql = "SELECT * FROM Users WHERE nickname = ?";
 
-        return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::readItem);
+        return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::read);
     }
 
     public final void updateUserInfoFromDb(final UserModel user) {
@@ -61,7 +61,7 @@ public class UserService {
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    private static UserModel readItem(ResultSet rs, int rowNum) throws SQLException {
+    private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
         return new UserModel(rs.getString("about"), rs.getString("email"), rs.getString("fullname"), rs.getString("nickname"));
     }
 }
