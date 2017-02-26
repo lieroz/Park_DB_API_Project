@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 public class ForumModel {
-    private Integer posts;
+    private Integer posts = 0;
     private String slug;
-    private Integer threads;
+    private Integer threads = 0;
     private String title;
     private String user;
 
