@@ -15,10 +15,10 @@ public class UserModel {
 
     @JsonCreator
     public UserModel(
-            @JsonProperty("about") String about,
-            @JsonProperty("email") String email,
-            @JsonProperty("fullname") String fullname,
-            @JsonProperty("nickname") String nickname
+            @JsonProperty("about") final String about,
+            @JsonProperty("email") final String email,
+            @JsonProperty("fullname") final String fullname,
+            @JsonProperty("nickname") final String nickname
     ) {
         this.about = about;
         this.email = email;
@@ -33,7 +33,7 @@ public class UserModel {
         this.nickname = other.getNickname();
     }
 
-    public String getAbout() {
+    public final String getAbout() {
         return this.about;
     }
 
@@ -41,7 +41,7 @@ public class UserModel {
         this.about = about;
     }
 
-    public String getEmail() {
+    public final String getEmail() {
         return this.email;
     }
 
@@ -49,7 +49,7 @@ public class UserModel {
         this.email = email;
     }
 
-    public String getFullname() {
+    public final String getFullname() {
         return this.fullname;
     }
 
@@ -57,7 +57,7 @@ public class UserModel {
         this.fullname = fullname;
     }
 
-    public String getNickname() {
+    public final String getNickname() {
         return this.nickname;
     }
 

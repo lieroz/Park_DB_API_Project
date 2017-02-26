@@ -62,6 +62,7 @@ public class UserService {
     }
 
     private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
-        return new UserModel(rs.getString("about"), rs.getString("email"), rs.getString("fullname"), rs.getString("nickname"));
+        return new UserModel(rs.getString("about"), rs.getString("email"),
+                rs.getString("fullname"), rs.getString("nickname"));
     }
 }

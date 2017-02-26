@@ -28,7 +28,8 @@ public class UserController {
         this.service = new UserService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> createUser(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
@@ -68,7 +69,8 @@ public class UserController {
         return new ResponseEntity<>(users.get(0), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> modifyProfile(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
