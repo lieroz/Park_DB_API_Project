@@ -7,29 +7,73 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by lieroz on 27.02.17.
  */
 
-public class ThreadModel {
-    private String author;
-    private String created;
-    private String forum;
-    private Integer id;
-    private Boolean edited;
-    private String message;
-    private Integer parent;
-    private Integer thread;
+public class ForumModel {
+    private Integer posts;
     private String slug;
-    private String Title;
-    private Integer votes;
+    private Integer threads;
+    private String title;
+    private UserModel user;
 
     @JsonCreator
-    public ThreadModel(
-            @JsonProperty("author") String author,
-            @JsonProperty("created") String created,
-            @JsonProperty("forum") String forum,
-            @JsonProperty("id") Integer id,
-            @JsonProperty("edited") Boolean edited,
-            @JsonProperty("message") String message,
+    public ForumModel(
+            @JsonProperty("posts") final Integer posts,
+            @JsonProperty("slug") final String slug,
+            @JsonProperty("threads") final Integer threads,
+            @JsonProperty("title") final String title,
+            @JsonProperty("user") final UserModel user
+    ) {
+        this.posts = posts;
+        this.slug = slug;
+        this.threads = threads;
+        this.title = title;
+        this.user = user;
+    }
 
-            ) {
+    public ForumModel(final ForumModel other) {
+        this.posts = other.getPosts();
+        this.slug = other.getSlug();
+        this.threads = other.getThreads();
+        this.title = other.getTitle();
+        this.user = other.getUser();
+    }
 
+    public final Integer getPosts() {
+        return this.posts;
+    }
+
+    public void setPosts(final Integer posts) {
+        this.posts = posts;
+    }
+
+    public final String getSlug() {
+        return this.slug;
+    }
+
+    public void setSlug(final String slug) {
+        this.slug = slug;
+    }
+
+    public final Integer getThreads() {
+        return this.threads;
+    }
+
+    public void setThreads(final Integer threads) {
+        this.threads = threads;
+    }
+
+    public final String getTitle() {
+        return this.title;
+    }
+
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
+    public final UserModel getUser() {
+        return this.user;
+    }
+
+    public void setUser(final UserModel user) {
+        this.user = user;
     }
 }
