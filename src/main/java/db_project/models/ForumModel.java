@@ -12,7 +12,7 @@ public class ForumModel {
     private String slug;
     private Integer threads;
     private String title;
-    private UserModel user;
+    private String user;
 
     @JsonCreator
     public ForumModel(
@@ -20,7 +20,7 @@ public class ForumModel {
             @JsonProperty("slug") final String slug,
             @JsonProperty("threads") final Integer threads,
             @JsonProperty("title") final String title,
-            @JsonProperty("user") final UserModel user
+            @JsonProperty("user") final String user
     ) {
         this.posts = posts;
         this.slug = slug;
@@ -69,11 +69,11 @@ public class ForumModel {
         this.title = title;
     }
 
-    public final UserModel getUser() {
+    public final String getUser() {
         return this.user;
     }
 
-    public void setUser(final UserModel user) {
+    public void setUser(final String user) {
         this.user = user;
     }
 }

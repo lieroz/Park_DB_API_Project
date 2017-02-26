@@ -4,3 +4,13 @@ CREATE TABLE IF NOT EXISTS Users (
   fullname VARCHAR(100) UNIQUE,
   nickname VARCHAR(100) PRIMARY KEY
 );
+
+CREATE TABLE IF NOT EXISTS Forums (
+  posts BIGINT,
+  slug VARCHAR(100) UNIQUE,
+  threads BIGINT,
+  title VARCHAR(100) UNIQUE,
+  author VARCHAR(100),
+  PRIMARY KEY (slug),
+  FOREIGN KEY (author) REFERENCES Users(nickname)
+);

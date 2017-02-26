@@ -14,7 +14,7 @@ import java.util.List;
  */
 
 @Service
-public class UserService {
+public final class UserService {
     private final JdbcTemplate jdbcTemplate;
 
     public UserService(final JdbcTemplate jdbcTemplate) {

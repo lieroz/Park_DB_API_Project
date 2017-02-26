@@ -18,8 +18,8 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/api/user/{nickname}")
-public class UserController {
+@RequestMapping(value = "/api/user/{nickname}")
+public final class UserController {
     private final JdbcTemplate jdbcTemplate;
     private final UserService service;
 
@@ -30,7 +30,7 @@ public class UserController {
 
     @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserModel> createUser(
+    public final ResponseEntity<UserModel> createUser(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserModel> viewProfile(
+    public final ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
         List<UserModel> users;
@@ -71,7 +71,7 @@ public class UserController {
 
     @RequestMapping(value = "/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserModel> modifyProfile(
+    public final ResponseEntity<UserModel> modifyProfile(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
