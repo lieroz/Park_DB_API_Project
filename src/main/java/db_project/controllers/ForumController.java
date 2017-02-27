@@ -46,7 +46,8 @@ public final class ForumController {
         return new ResponseEntity<>(new ForumModel(forum), HttpStatus.CREATED);
     }
 
-    @RequestMapping("/{slug}/create")
+    @RequestMapping(value = "/{slug}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ForumSlugModel> createSlug(
             @RequestBody ForumSlugModel forumSlug,
             @PathVariable(value = "slug") final String slug
