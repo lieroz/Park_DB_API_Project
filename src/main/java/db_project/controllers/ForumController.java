@@ -1,6 +1,7 @@
 package db_project.controllers;
 
 import db_project.models.ForumModel;
+import db_project.models.ForumSlugModel;
 import db_project.models.UserModel;
 import db_project.services.ForumService;
 import db_project.services.UserService;
@@ -54,5 +55,31 @@ public final class ForumController {
         }
 
         return new ResponseEntity<>(new ForumModel(forum), HttpStatus.CREATED);
+    }
+
+    @RequestMapping("/{slug}/create")
+    public final ResponseEntity<ForumSlugModel> createSlug(
+            @RequestBody ForumSlugModel forumSlug,
+            @PathVariable(value = "slug") final String slug
+    ) {
+        forumSlug.setSlug(slug);
+
+        try {
+            List<UserModel> users = userService.getUserFromDb(forumSlug.getAuthor());
+
+            if (users.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+            forumService.insertSlugIntoDb(forumSlug);
+
+        } catch (DuplicateKeyException ex) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(new ForumSlugModel(forumSlug), HttpStatus.CREATED);
     }
 }

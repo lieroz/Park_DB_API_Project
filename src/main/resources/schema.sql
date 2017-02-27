@@ -10,5 +10,16 @@ CREATE TABLE IF NOT EXISTS Forums (
   slug VARCHAR(100) PRIMARY KEY,
   threads BIGINT,
   title VARCHAR(100) UNIQUE,
-  author VARCHAR(100)
+  author VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS ForumSlugs (
+  author VARCHAR(100),
+  created VARCHAR(100),
+  forum VARCHAR(100),
+  id BIGINT UNIQUE,
+  msg VARCHAR(100),
+  slug VARCHAR(100) UNIQUE,
+  title VARCHAR(100) UNIQUE,
+  votes BIGINT
 );
