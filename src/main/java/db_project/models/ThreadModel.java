@@ -5,4 +5,5 @@ package db_project.models;
  */
 
 public class ThreadModel {
+
 }
