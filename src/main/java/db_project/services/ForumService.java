@@ -74,6 +74,14 @@ final public class ForumService {
         );
     }
 
+    public final List<ForumSlugModel> getThreadsInfo(final String slug) {
+        return jdbcTemplate.query(
+                "SELECT * FROM ForumSlugs WHERE forum = ?",
+                new Object[]{slug},
+                ForumService::readForumSlug
+        );
+    }
+
     private static ForumModel readForum(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(
                 rs.getInt("posts"),

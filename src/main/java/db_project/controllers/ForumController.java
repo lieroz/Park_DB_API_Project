@@ -81,12 +81,12 @@ public final class ForumController {
     public final ResponseEntity<ForumModel> viewForum(
             @PathVariable("slug") final String slug
     ) {
-        List<ForumModel> forums;
+        List<ForumModel> forum;
 
         try {
-            forums = service.getForumInfo(slug);
+            forum = service.getForumInfo(slug);
 
-            if (forums.isEmpty()) {
+            if (forum.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
@@ -94,6 +94,26 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(new ForumModel(forums.get(0)), HttpStatus.OK);
+        return new ResponseEntity<>(new ForumModel(forum.get(0)), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<List<ForumSlugModel>> viewThreads(
+            @PathVariable("slug") final String slug
+    ) {
+        try {
+            List<ForumModel> forum = service.getForumInfo(slug);
+
+            if (forum.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        List<ForumSlugModel> threads = service.getThreadsInfo(slug);
+
+        return new ResponseEntity<>(threads, HttpStatus.OK);
     }
 }
