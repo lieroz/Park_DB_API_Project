@@ -22,11 +22,11 @@ import java.util.List;
 @RequestMapping(value = "api/forum")
 public final class ForumController {
     private final JdbcTemplate jdbcTemplate;
-    private final ForumService forumService;
+    private final ForumService service;
 
     public ForumController(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.forumService = new ForumService(jdbcTemplate);
+        this.service = new ForumService(jdbcTemplate);
     }
 
     @RequestMapping(value = "/create",
@@ -37,7 +37,7 @@ public final class ForumController {
             @RequestBody final ForumModel forum
     ) {
         try {
-            forumService.insertForumIntoDb(forum);
+            service.insertForumIntoDb(forum);
 
         } catch (DuplicateKeyException ex) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -61,7 +61,7 @@ public final class ForumController {
         List<ForumSlugModel> slugs;
 
         try {
-            slugs = forumService.insertSlugIntoDb(forumSlug);
+            slugs = service.insertSlugIntoDb(forumSlug);
 
             if (slugs.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
@@ -75,5 +75,25 @@ public final class ForumController {
         }
 
         return new ResponseEntity<>(slugs.get(0), HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = "/{slug}/details", produces = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<ForumModel> viewForum(
+            @PathVariable("slug") final String slug
+    ) {
+        List<ForumModel> forums;
+
+        try {
+            forums = service.getForumInfo(slug);
+
+            if (forums.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(new ForumModel(forums.get(0)), HttpStatus.OK);
     }
 }

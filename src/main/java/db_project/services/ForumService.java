@@ -62,11 +62,29 @@ final public class ForumService {
         return jdbcTemplate.query(
                 "SELECT * FROM ForumSlugs WHERE slug = ?",
                 new Object[]{forumSlug.getSlug()},
-                ForumService::read
+                ForumService::readForumSlug
         );
     }
 
-    private static ForumSlugModel read(ResultSet rs, int rowNum) throws SQLException {
+    public final List<ForumModel> getForumInfo(final String slug) {
+        return jdbcTemplate.query(
+                "SELECT * FROM Forums WHERE slug = ?",
+                new Object[]{slug},
+                ForumService::readForum
+        );
+    }
+
+    private static ForumModel readForum(ResultSet rs, int rowNum) throws SQLException {
+        return new ForumModel(
+                rs.getInt("posts"),
+                rs.getString("user"),
+                rs.getInt("threads"),
+                rs.getString("slug"),
+                rs.getString("title")
+        );
+    }
+
+    private static ForumSlugModel readForumSlug(ResultSet rs, int rowNum) throws SQLException {
         return new ForumSlugModel(
                 rs.getString("author"),
                 rs.getString("created"),
