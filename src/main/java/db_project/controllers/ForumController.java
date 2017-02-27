@@ -5,13 +5,14 @@ import db_project.models.ForumSlugModel;
 import db_project.services.ForumService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Constructor;
+import java.util.List;
 
 /**
  * Created by lieroz on 27.02.17.
@@ -28,7 +29,9 @@ public final class ForumController {
         this.forumService = new ForumService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+    @RequestMapping(value = "/create",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ForumModel> createForum(
             @RequestBody final ForumModel forum
@@ -46,16 +49,23 @@ public final class ForumController {
         return new ResponseEntity<>(new ForumModel(forum), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/{slug}/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+    @RequestMapping(value = "/{slug}/create",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ForumSlugModel> createSlug(
             @RequestBody ForumSlugModel forumSlug,
             @PathVariable(value = "slug") final String slug
     ) {
         forumSlug.setSlug(slug);
+        List<ForumSlugModel> slugs;
 
         try {
-            forumService.insertSlugIntoDb(forumSlug);
+            slugs = forumService.insertSlugIntoDb(forumSlug);
+
+            if (slugs.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
 
         } catch (DuplicateKeyException ex) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -64,6 +74,6 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(new ForumSlugModel(forumSlug), HttpStatus.CREATED);
+        return new ResponseEntity<>(slugs.get(0), HttpStatus.CREATED);
     }
 }

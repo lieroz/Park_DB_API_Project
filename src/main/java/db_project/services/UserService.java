@@ -22,14 +22,26 @@ public final class UserService {
     }
 
     public final void insertUserIntoDb(final UserModel user) {
-        final String sql = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?)";
-        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), user.getNickname());
+        final String sql = "INSERT INTO Users (" +
+                "about, " +
+                "email, " +
+                "fullname, " +
+                "nickname" +
+                ") VALUES(?, ?, ?, ?)";
+        jdbcTemplate.update(
+                sql,
+                user.getAbout(),
+                user.getEmail(),
+                user.getFullname(),
+                user.getNickname()
+        );
     }
 
     public final List<UserModel> getUserFromDb(final String nickname) {
-        final String sql = "SELECT * FROM Users WHERE nickname = ?";
-
-        return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::read);
+        return jdbcTemplate.query(
+                "SELECT * FROM Users WHERE nickname = ?",
+                new Object[]{nickname},
+                UserService::read);
     }
 
     public final void updateUserInfoFromDb(final UserModel user) {
@@ -62,7 +74,11 @@ public final class UserService {
     }
 
     private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
-        return new UserModel(rs.getString("about"), rs.getString("email"),
-                rs.getString("fullname"), rs.getString("nickname"));
+        return new UserModel(
+                rs.getString("about"),
+                rs.getString("email"),
+                rs.getString("fullname"),
+                rs.getString("nickname")
+        );
     }
 }
