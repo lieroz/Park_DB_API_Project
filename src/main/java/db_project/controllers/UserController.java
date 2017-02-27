@@ -28,7 +28,9 @@ public final class UserController {
         this.service = new UserService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+    @RequestMapping(value = "/create",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<UserModel> createUser(
             @RequestBody UserModel user,
@@ -69,7 +71,9 @@ public final class UserController {
         return new ResponseEntity<>(users.get(0), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE,
+    @RequestMapping(value = "/profile",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<UserModel> modifyProfile(
             @RequestBody UserModel user,
