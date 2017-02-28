@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Forums (
   FOREIGN KEY ("user") REFERENCES Users (nickname)
 );
 
-CREATE TABLE IF NOT EXISTS ForumSlugs (
+CREATE TABLE IF NOT EXISTS Threads (
   author VARCHAR(100) NOT NULL,
   FOREIGN KEY (author) REFERENCES Users(nickname),
   created VARCHAR(100) DEFAULT 0,

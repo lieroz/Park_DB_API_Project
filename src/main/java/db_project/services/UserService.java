@@ -73,7 +73,7 @@ public final class UserService {
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
+    public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
         return new UserModel(
                 rs.getString("about"),
                 rs.getString("email"),

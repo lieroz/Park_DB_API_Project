@@ -1,7 +1,7 @@
 package db_project.controllers;
 
 import db_project.models.ForumModel;
-import db_project.models.ForumSlugModel;
+import db_project.models.ThreadModel;
 import db_project.services.ForumService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -53,12 +53,12 @@ public final class ForumController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ForumSlugModel> createSlug(
-            @RequestBody ForumSlugModel forumSlug,
+    public final ResponseEntity<ThreadModel> createSlug(
+            @RequestBody ThreadModel forumSlug,
             @PathVariable(value = "slug") final String slug
     ) {
         forumSlug.setSlug(slug);
-        List<ForumSlugModel> slugs;
+        List<ThreadModel> slugs;
 
         try {
             slugs = service.insertSlugIntoDb(forumSlug);
@@ -98,7 +98,7 @@ public final class ForumController {
     }
 
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<ForumSlugModel>> viewThreads(
+    public final ResponseEntity<List<ThreadModel>> viewThreads(
             @PathVariable("slug") final String slug
     ) {
         try {
@@ -112,7 +112,7 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ForumSlugModel> threads = service.getThreadsInfo(slug);
+        List<ThreadModel> threads = service.getThreadsInfo(slug);
 
         return new ResponseEntity<>(threads, HttpStatus.OK);
     }
