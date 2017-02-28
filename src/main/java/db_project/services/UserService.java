@@ -70,7 +70,7 @@ public final class UserService {
         }
 
         sql.delete(sql.length() - 1, sql.length());
-        sql.append(" WHERE nickname = ?");
+        sql.append(" WHERE LOWER(nickname) = LOWER(?)");
         args.add(user.getNickname());
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
