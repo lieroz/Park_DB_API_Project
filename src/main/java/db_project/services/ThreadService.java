@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Created by lieroz on 27.02.17.
@@ -17,6 +18,14 @@ public class ThreadService {
 
     public ThreadService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public final List<ThreadModel> getThreadInfo(final String slug) {
+        return jdbcTemplate.query(
+                "SELECT * FROM Threads WHERE slug = ?",
+                new Object[]{slug},
+                ThreadService::read
+        );
     }
 
     public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
