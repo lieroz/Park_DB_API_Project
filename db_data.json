@@ -1,0 +1,25 @@
+USER {
+	"about" : "user",
+	"email" : "email",
+	"fullname" : "fullname",
+	"nickname" : "nickname"
+}
+
+FORUM {
+	"posts": "POSTS", // GET ALL POSTS IN A CURRENT FORUM | READ ONLY
+	"slug": "forum slug",
+	"threds": "THREADS", // GET ALL THREADS IN CURRENT FORUM | READ ONLY
+	"title": "forum title",
+	"user": "user" // references USER nickname
+}
+
+FORUM_SLUG {
+	"author": "user", // references USER nickname
+	"created": "DATE TIME", // PUTS HERE TIME WHEN FORUM SLUG WAS CREATED | READ ONLY
+	"forum": "forum slug", // references FORUM slug
+	"id": "ID", // AUTOINCREMENTED FIELD | READ ONLY
+	"message": "MESSAGE", // CAN BE OMMITED
+	"slug": "forum slug slug", // UNIQUE IN TABLE
+	"title": "forum slug title", // UNIQUE IN TABLE
+	"votes": "int here" // READ ONLY
+}

@@ -14,7 +14,7 @@ import java.util.List;
  */
 
 @Service
-public class UserService {
+public final class UserService {
     private final JdbcTemplate jdbcTemplate;
 
     public UserService(final JdbcTemplate jdbcTemplate) {
@@ -22,14 +22,28 @@ public class UserService {
     }
 
     public final void insertUserIntoDb(final UserModel user) {
-        final String sql = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?)";
-        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), user.getNickname());
+        final String sql = "INSERT INTO Users (" +
+                "about, " +
+                "email, " +
+                "fullname, " +
+                "nickname" +
+                ") VALUES(?, ?, ?, ?)";
+        jdbcTemplate.update(
+                sql,
+                user.getAbout(),
+                user.getEmail(),
+                user.getFullname(),
+                user.getNickname()
+        );
     }
 
-    public final List<UserModel> getUserFromDb(final String nickname) {
-        final String sql = "SELECT * FROM Users WHERE nickname = ?";
-
-        return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::read);
+    public final List<UserModel> getUserFromDb(final UserModel user) {
+        return jdbcTemplate.query(
+                "SELECT * FROM Users WHERE " +
+                        "LOWER(email) = LOWER(?) OR " +
+                        "LOWER(nickname) = LOWER(?)",
+                new Object[]{user.getEmail(), user.getNickname()},
+                UserService::read);
     }
 
     public final void updateUserInfoFromDb(final UserModel user) {
@@ -61,7 +75,12 @@ public class UserService {
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
-        return new UserModel(rs.getString("about"), rs.getString("email"), rs.getString("fullname"), rs.getString("nickname"));
+    public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
+        return new UserModel(
+                rs.getString("about"),
+                rs.getString("email"),
+                rs.getString("fullname"),
+                rs.getString("nickname")
+        );
     }
 }
