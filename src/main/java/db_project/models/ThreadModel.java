@@ -64,7 +64,6 @@ public class ThreadModel {
         this.created = created;
     }
 
-
     public final String getForum() {
         return this.forum;
     }

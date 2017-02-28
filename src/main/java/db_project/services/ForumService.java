@@ -60,9 +60,9 @@ final public class ForumService {
         );
 
         return jdbcTemplate.query(
-                "SELECT * FROM ForumSlugs WHERE slug = ?",
+                "SELECT * FROM Threads WHERE slug = ?",
                 new Object[]{forumSlug.getSlug()},
-                ThreadService::readThread
+                ThreadService::read
         );
     }
 
@@ -70,19 +70,19 @@ final public class ForumService {
         return jdbcTemplate.query(
                 "SELECT * FROM Forums WHERE slug = ?",
                 new Object[]{slug},
-                ForumService::readForum
+                ForumService::read
         );
     }
 
     public final List<ThreadModel> getThreadsInfo(final String slug) {
         return jdbcTemplate.query(
-                "SELECT * FROM ForumSlugs WHERE forum = ?",
+                "SELECT * FROM Threads WHERE forum = ?",
                 new Object[]{slug},
-                ThreadService::readThread
+                ThreadService::read
         );
     }
 
-    public static ForumModel readForum(ResultSet rs, int rowNum) throws SQLException {
+    public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(
                 rs.getInt("posts"),
                 rs.getString("user"),

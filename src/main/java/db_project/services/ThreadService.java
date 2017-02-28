@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 @Service
 public class ThreadService {
-    public static ThreadModel readThread(ResultSet rs, int rowNum) throws SQLException {
+    public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ThreadModel(
                 rs.getString("author"),
                 rs.getString("created"),
