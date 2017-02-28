@@ -37,10 +37,12 @@ public final class UserService {
         );
     }
 
-    public final List<UserModel> getUserFromDb(final String nickname) {
+    public final List<UserModel> getUserFromDb(final UserModel user) {
         return jdbcTemplate.query(
-                "SELECT * FROM Users WHERE nickname = ?",
-                new Object[]{nickname},
+                "SELECT * FROM Users WHERE " +
+                        "LOWER(email) = LOWER(?) OR " +
+                        "LOWER(nickname) = LOWER(?)",
+                new Object[]{user.getEmail(), user.getNickname()},
                 UserService::read);
     }
 

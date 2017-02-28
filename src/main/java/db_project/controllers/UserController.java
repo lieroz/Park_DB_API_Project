@@ -32,7 +32,7 @@ public final class UserController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserModel> createUser(
+    public final ResponseEntity<Object> createUser(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
@@ -42,7 +42,7 @@ public final class UserController {
             service.insertUserIntoDb(user);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getUserFromDb(user) ,HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -58,7 +58,7 @@ public final class UserController {
         List<UserModel> users;
 
         try {
-            users = service.getUserFromDb(nickname);
+            users = service.getUserFromDb(new UserModel("", "", "", nickname));
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
@@ -83,7 +83,7 @@ public final class UserController {
 
         try {
             service.updateUserInfoFromDb(user);
-            List<UserModel> users = service.getUserFromDb(nickname);
+            List<UserModel> users = service.getUserFromDb(user);
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
