@@ -2,6 +2,8 @@ package db_project.services;
 
 import db_project.models.ForumModel;
 import db_project.models.ThreadModel;
+import db_project.models.UserModel;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,15 @@ final public class ForumService {
     }
 
     public final void insertForumIntoDb(final ForumModel forum) {
+        List<UserModel> users = jdbcTemplate.query(
+                "SELECT * FROM Users WHERE LOWER(nickname) = LOWER(?)",
+                new Object[]{forum.getUser()},
+                UserService::read);
+
+        if (users.isEmpty()) {
+            throw new EmptyResultDataAccessException(0);
+        }
+
         final String sql = "INSERT INTO Forums (" +
                 "slug, " +
                 "title, " +
@@ -32,7 +43,7 @@ final public class ForumService {
                 sql,
                 forum.getSlug(),
                 forum.getTitle(),
-                forum.getUser()
+                users.get(0).getNickname()
         );
     }
 
@@ -68,7 +79,7 @@ final public class ForumService {
 
     public final List<ForumModel> getForumInfo(final String slug) {
         return jdbcTemplate.query(
-                "SELECT * FROM Forums WHERE slug = ?",
+                "SELECT * FROM Forums WHERE LOWER(slug) = LOWER(?)",
                 new Object[]{slug},
                 ForumService::read
         );
@@ -85,10 +96,10 @@ final public class ForumService {
     public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(
                 rs.getInt("posts"),
-                rs.getString("user"),
-                rs.getInt("threads"),
                 rs.getString("slug"),
-                rs.getString("title")
+                rs.getInt("threads"),
+                rs.getString("title"),
+                rs.getString("user")
         );
     }
 }

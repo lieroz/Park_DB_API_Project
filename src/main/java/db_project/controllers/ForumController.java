@@ -40,13 +40,13 @@ public final class ForumController {
             service.insertForumIntoDb(forum);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ForumModel(service.getForumInfo(forum.getSlug()).get(0)), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(new ForumModel(forum), HttpStatus.CREATED);
+        return new ResponseEntity<>(new ForumModel(service.getForumInfo(forum.getSlug()).get(0)), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/{slug}/create",
