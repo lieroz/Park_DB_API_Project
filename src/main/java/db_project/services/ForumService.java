@@ -1,7 +1,7 @@
 package db_project.services;
 
 import db_project.models.ForumModel;
-import db_project.models.ForumSlugModel;
+import db_project.models.ThreadModel;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +36,12 @@ final public class ForumService {
         );
     }
 
-    public final List<ForumSlugModel> insertSlugIntoDb(final ForumSlugModel forumSlug) {
-        if (forumSlug.getCreated() == null) {
-            forumSlug.setCreated(LocalDateTime.now().toString());
+    public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
+        if (thread.getCreated() == null) {
+            thread.setCreated(LocalDateTime.now().toString());
         }
 
-        final String sql = "INSERT INTO ForumSlugs (" +
+        final String sql = "INSERT INTO Threads (" +
                 "author, " +
                 "created, " +
                 "forum, " +
@@ -51,18 +51,18 @@ final public class ForumService {
                 "VALUES(?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(
                 sql,
-                forumSlug.getAuthor(),
-                forumSlug.getCreated(),
-                forumSlug.getForum(),
-                forumSlug.getMessage(),
-                forumSlug.getSlug(),
-                forumSlug.getTitle()
+                thread.getAuthor(),
+                thread.getCreated(),
+                thread.getForum(),
+                thread.getMessage(),
+                thread.getSlug(),
+                thread.getTitle()
         );
 
         return jdbcTemplate.query(
-                "SELECT * FROM ForumSlugs WHERE slug = ?",
-                new Object[]{forumSlug.getSlug()},
-                ForumService::readForumSlug
+                "SELECT * FROM Threads WHERE slug = ?",
+                new Object[]{thread.getSlug()},
+                ThreadService::read
         );
     }
 
@@ -70,19 +70,19 @@ final public class ForumService {
         return jdbcTemplate.query(
                 "SELECT * FROM Forums WHERE slug = ?",
                 new Object[]{slug},
-                ForumService::readForum
+                ForumService::read
         );
     }
 
-    public final List<ForumSlugModel> getThreadsInfo(final String slug) {
+    public final List<ThreadModel> getThreadsInfo(final String slug) {
         return jdbcTemplate.query(
-                "SELECT * FROM ForumSlugs WHERE forum = ?",
+                "SELECT * FROM Threads WHERE forum = ?",
                 new Object[]{slug},
-                ForumService::readForumSlug
+                ThreadService::read
         );
     }
 
-    private static ForumModel readForum(ResultSet rs, int rowNum) throws SQLException {
+    public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(
                 rs.getInt("posts"),
                 rs.getString("user"),
@@ -90,18 +90,5 @@ final public class ForumService {
                 rs.getString("slug"),
                 rs.getString("title")
         );
-    }
-
-    private static ForumSlugModel readForumSlug(ResultSet rs, int rowNum) throws SQLException {
-        return new ForumSlugModel(
-                rs.getString("author"),
-                rs.getString("created"),
-                rs.getString("forum"),
-                rs.getInt("id"),
-                rs.getString("message"),
-                rs.getString("slug"),
-                rs.getString("title"),
-                rs.getInt("votes")
-                );
     }
 }

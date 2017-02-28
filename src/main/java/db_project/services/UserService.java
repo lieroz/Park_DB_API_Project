@@ -37,10 +37,12 @@ public final class UserService {
         );
     }
 
-    public final List<UserModel> getUserFromDb(final String nickname) {
+    public final List<UserModel> getUserFromDb(final UserModel user) {
         return jdbcTemplate.query(
-                "SELECT * FROM Users WHERE nickname = ?",
-                new Object[]{nickname},
+                "SELECT * FROM Users WHERE " +
+                        "LOWER(email) = LOWER(?) OR " +
+                        "LOWER(nickname) = LOWER(?)",
+                new Object[]{user.getEmail(), user.getNickname()},
                 UserService::read);
     }
 
@@ -68,12 +70,12 @@ public final class UserService {
         }
 
         sql.delete(sql.length() - 1, sql.length());
-        sql.append(" WHERE nickname = ?");
+        sql.append(" WHERE LOWER(nickname) = LOWER(?)");
         args.add(user.getNickname());
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
+    public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
         return new UserModel(
                 rs.getString("about"),
                 rs.getString("email"),

@@ -4,48 +4,49 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 27.02.17.
+ * Created by lieroz on 28.02.17.
  */
-public class ForumSlugModel {
+
+public class PostModel {
     private String author;
     private String created;
     private String forum;
     private Integer id;
+    private Boolean isEdited;
     private String message;
-    private String slug;
-    private String title;
-    private Integer votes;
+    private Integer parent;
+    private Integer thread;
 
     @JsonCreator
-    public ForumSlugModel(
+    public PostModel(
             @JsonProperty("author") final String author,
             @JsonProperty("created") final String created,
             @JsonProperty("forum") final String forum,
             @JsonProperty("id") final Integer id,
+            @JsonProperty("isEdited") final Boolean isEdited,
             @JsonProperty("message") final String message,
-            @JsonProperty("slug") final String slug,
-            @JsonProperty("title") final String title,
-            @JsonProperty("votes") final Integer votes
+            @JsonProperty("parent") final Integer parent,
+            @JsonProperty("thread") final Integer thread
     ) {
         this.author = author;
         this.created = created;
         this.forum = forum;
         this.id = id;
+        this.isEdited = isEdited;
         this.message = message;
-        this.slug = slug;
-        this.title = title;
-        this.votes = votes;
+        this.parent = parent;
+        this.thread = thread;
     }
 
-    public ForumSlugModel(final ForumSlugModel other) {
-        this.author = other.getAuthor();
-        this.created = other.getCreated();
-        this.forum = other.getForum();
-        this.id = other.getId();
-        this.message = other.getMessage();
-        this.slug = other.getSlug();
-        this.title = other.getTitle();
-        this.votes = other.getVotes();
+    public PostModel(final PostModel other) {
+        this.author = author;
+        this.created = created;
+        this.forum = forum;
+        this.id = id;
+        this.isEdited = isEdited;
+        this.message = message;
+        this.parent = parent;
+        this.thread = thread;
     }
 
     public final String getAuthor() {
@@ -64,7 +65,6 @@ public class ForumSlugModel {
         this.created = created;
     }
 
-
     public final String getForum() {
         return this.forum;
     }
@@ -81,6 +81,14 @@ public class ForumSlugModel {
         this.id = id;
     }
 
+    public final Boolean getEdited() {
+        return this.isEdited;
+    }
+
+    public void setEdited(final Boolean isEdited) {
+        this.isEdited = isEdited;
+    }
+
     public final String getMessage() {
         return this.message;
     }
@@ -89,27 +97,19 @@ public class ForumSlugModel {
         this.message = message;
     }
 
-    public final String getSlug() {
-        return this.slug;
+    public final Integer getParent() {
+        return this.parent;
     }
 
-    public void setSlug(final String slug) {
-        this.slug = slug;
+    public void setParent(final Integer parent) {
+        this.parent = parent;
     }
 
-    public final String getTitle() {
-        return this.title;
+    public final Integer getThread() {
+        return this.thread;
     }
 
-    public void setTitle(final String title) {
-        this.title = title;
-    }
-
-    public final Integer getVotes() {
-        return this.votes;
-    }
-
-    public void setVotes(final Integer votes) {
-        this.votes = votes;
+    public void setThread(final Integer thread) {
+        this.thread = thread;
     }
 }
