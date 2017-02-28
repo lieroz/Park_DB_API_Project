@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by lieroz on 27.02.17.
  */
-public class ForumSlugModel {
+public class ThreadModel {
     private String author;
     private String created;
     private String forum;
@@ -17,7 +17,7 @@ public class ForumSlugModel {
     private Integer votes;
 
     @JsonCreator
-    public ForumSlugModel(
+    public ThreadModel(
             @JsonProperty("author") final String author,
             @JsonProperty("created") final String created,
             @JsonProperty("forum") final String forum,
@@ -37,7 +37,7 @@ public class ForumSlugModel {
         this.votes = votes;
     }
 
-    public ForumSlugModel(final ForumSlugModel other) {
+    public ThreadModel(final ThreadModel other) {
         this.author = other.getAuthor();
         this.created = other.getCreated();
         this.forum = other.getForum();
