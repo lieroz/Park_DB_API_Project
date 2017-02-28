@@ -26,3 +26,17 @@ CREATE TABLE IF NOT EXISTS Threads (
   title VARCHAR(100) UNIQUE NOT NULL,
   votes BIGINT DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS Posts (
+  author VARCHAR(100) NOT NULL,
+  FOREIGN KEY (author) REFERENCES Users(nickname),
+  created VARCHAR(100) DEFAULT 0,
+  forum VARCHAR(100) NOT NULL,
+  FOREIGN KEY (forum) REFERENCES Forums(slug),
+  id SERIAL,
+  isEdited BOOLEAN DEFAULT TRUE,
+  message VARCHAR(100),
+  parent BIGINT DEFAULT 0,
+  thread BIGINT NOT NULL,
+  FOREIGN KEY (thread) REFERENCES Threads(id)
+);
