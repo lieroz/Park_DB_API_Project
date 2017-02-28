@@ -36,12 +36,12 @@ final public class ForumService {
         );
     }
 
-    public final List<ThreadModel> insertSlugIntoDb(final ThreadModel forumSlug) {
-        if (forumSlug.getCreated() == null) {
-            forumSlug.setCreated(LocalDateTime.now().toString());
+    public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
+        if (thread.getCreated() == null) {
+            thread.setCreated(LocalDateTime.now().toString());
         }
 
-        final String sql = "INSERT INTO ForumSlugs (" +
+        final String sql = "INSERT INTO Threads (" +
                 "author, " +
                 "created, " +
                 "forum, " +
@@ -51,17 +51,17 @@ final public class ForumService {
                 "VALUES(?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(
                 sql,
-                forumSlug.getAuthor(),
-                forumSlug.getCreated(),
-                forumSlug.getForum(),
-                forumSlug.getMessage(),
-                forumSlug.getSlug(),
-                forumSlug.getTitle()
+                thread.getAuthor(),
+                thread.getCreated(),
+                thread.getForum(),
+                thread.getMessage(),
+                thread.getSlug(),
+                thread.getTitle()
         );
 
         return jdbcTemplate.query(
                 "SELECT * FROM Threads WHERE slug = ?",
-                new Object[]{forumSlug.getSlug()},
+                new Object[]{thread.getSlug()},
                 ThreadService::read
         );
     }
