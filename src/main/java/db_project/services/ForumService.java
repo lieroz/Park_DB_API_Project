@@ -25,26 +25,9 @@ final public class ForumService {
     }
 
     public final void insertForumIntoDb(final ForumModel forum) {
-        List<UserModel> users = jdbcTemplate.query(
-                "SELECT * FROM Users WHERE LOWER(nickname) = LOWER(?)",
-                new Object[]{forum.getUser()},
-                UserService::read);
-
-        if (users.isEmpty()) {
-            throw new EmptyResultDataAccessException(0);
-        }
-
-        final String sql = "INSERT INTO Forums (" +
-                "slug, " +
-                "title, " +
-                "\"user\") " +
-                "VALUES(?, ?, ?)";
-        jdbcTemplate.update(
-                sql,
-                forum.getSlug(),
-                forum.getTitle(),
-                users.get(0).getNickname()
-        );
+        final String sql = "INSERT INTO forums (slug, title, \"user\") VALUES(?, ?, " +
+                "(SELECT nickname FROM users WHERE LOWER(nickname) = LOWER(?)))";
+        jdbcTemplate.update(sql, forum.getSlug(), forum.getTitle(), forum.getUser());
     }
 
     public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
@@ -52,26 +35,14 @@ final public class ForumService {
             thread.setCreated(LocalDateTime.now().toString());
         }
 
-        final String sql = "INSERT INTO Threads (" +
-                "author, " +
-                "created, " +
-                "forum, " +
-                "\"message\", " +
-                "slug, " +
-                "title) " +
-                "VALUES(?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(
-                sql,
-                thread.getAuthor(),
-                thread.getCreated(),
-                thread.getForum(),
-                thread.getMessage(),
-                thread.getSlug(),
-                thread.getTitle()
+        final String sql = "INSERT INTO threads (author, created, forum, \"message\", " +
+                "slug, title) VALUES(?, ?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql, thread.getAuthor(), thread.getCreated(), thread.getForum(),
+                thread.getMessage(), thread.getSlug(), thread.getTitle()
         );
 
         return jdbcTemplate.query(
-                "SELECT * FROM Threads WHERE slug = ?",
+                "SELECT * FROM threads WHERE slug = ?",
                 new Object[]{thread.getSlug()},
                 ThreadService::read
         );
@@ -79,7 +50,7 @@ final public class ForumService {
 
     public final List<ForumModel> getForumInfo(final String slug) {
         return jdbcTemplate.query(
-                "SELECT * FROM Forums WHERE LOWER(slug) = LOWER(?)",
+                "SELECT * FROM forums WHERE LOWER(slug) = LOWER(?)",
                 new Object[]{slug},
                 ForumService::read
         );
@@ -87,7 +58,7 @@ final public class ForumService {
 
     public final List<ThreadModel> getThreadsInfo(final String slug) {
         return jdbcTemplate.query(
-                "SELECT * FROM Threads WHERE forum = ?",
+                "SELECT * FROM threads WHERE forum = ?",
                 new Object[]{slug},
                 ThreadService::read
         );

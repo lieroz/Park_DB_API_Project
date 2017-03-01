@@ -42,7 +42,7 @@ public final class UserController {
             service.insertUserIntoDb(user);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getUserFromDb(user) ,HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getUserFromDb(user), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by lieroz on 27.02.17.
  */
+
 public class ThreadModel {
     private String author;
     private String created;
