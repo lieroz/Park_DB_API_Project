@@ -2,14 +2,14 @@ package db_project.services;
 
 import db_project.models.ForumModel;
 import db_project.models.ThreadModel;
-import db_project.models.UserModel;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -35,9 +35,11 @@ final public class ForumService {
             thread.setCreated(LocalDateTime.now().toString());
         }
 
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(thread.getCreated(), DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         final String sql = "INSERT INTO threads (author, created, forum, \"message\", " +
                 "slug, title) VALUES(?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sql, thread.getAuthor(), thread.getCreated(), thread.getForum(),
+
+        jdbcTemplate.update(sql, thread.getAuthor(), timestamp, thread.getForum(),
                 thread.getMessage(), thread.getSlug(), thread.getTitle()
         );
 

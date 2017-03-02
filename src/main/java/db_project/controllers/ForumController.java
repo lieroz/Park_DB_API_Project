@@ -107,6 +107,9 @@ public final class ForumController {
     // TODO GET INFO ABOUT VOTES
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
+            @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
+            @RequestParam(value = "since", required = false) final String since,
+            @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
         try {

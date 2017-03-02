@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS forums (
 
 CREATE TABLE IF NOT EXISTS threads (
   author CITEXT NOT NULL REFERENCES users (nickname),
-  created CITEXT DEFAULT 0,
+  created TIMESTAMP DEFAULT NOW(),
   forum CITEXT NOT NULL REFERENCES forums (slug),
   id SERIAL,
   message CITEXT,
