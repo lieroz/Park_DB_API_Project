@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by lieroz on 27.02.17.
@@ -57,13 +58,14 @@ public final class ForumController {
             @RequestBody ThreadModel thread,
             @PathVariable(value = "slug") final String slug
     ) {
-        thread.setSlug(slug);
-        List<ThreadModel> slugs;
+        if (thread.getSlug() == null) {
+            thread.setSlug(slug);
+        }
 
         try {
-            slugs = service.insertThreadIntoDb(thread);
+            List<ThreadModel> threads = service.insertThreadIntoDb(thread);
 
-            if (slugs.isEmpty()) {
+            if (threads.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
@@ -74,7 +76,11 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(slugs.get(0), HttpStatus.CREATED);
+        if (Objects.equals(thread.getSlug(), thread.getForum())) {
+            thread.setSlug(null);
+        }
+
+        return new ResponseEntity<>(thread, HttpStatus.CREATED);
     }
 
     // TODO GET INFO ABOUT POSTS AND THREADS

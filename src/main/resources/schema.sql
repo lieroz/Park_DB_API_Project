@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS CITEXT;
 CREATE TABLE IF NOT EXISTS users (
   about TEXT,
   email CITEXT UNIQUE,
-  fullname VARCHAR(100),
+  fullname CITEXT,
   nickname CITEXT PRIMARY KEY
 );
 
@@ -15,16 +15,16 @@ CREATE TABLE IF NOT EXISTS forums (
   "user" CITEXT NOT NULL REFERENCES users (nickname)
 );
 
--- CREATE TABLE IF NOT EXISTS Threads (
---   author CITEXT NOT NULL REFERENCES Users(nickname),
---   created VARCHAR(100) DEFAULT 0,
---   forum VARCHAR(100) NOT NULL REFERENCES Forums(slug),
---   id SERIAL,
---   message VARCHAR(100),
---   slug VARCHAR(100) PRIMARY KEY,
---   title VARCHAR(100) UNIQUE NOT NULL,
---   votes BIGINT DEFAULT 0
--- );
+CREATE TABLE IF NOT EXISTS threads (
+  author CITEXT NOT NULL REFERENCES users (nickname),
+  created CITEXT DEFAULT 0,
+  forum CITEXT NOT NULL REFERENCES forums (slug),
+  id SERIAL,
+  message CITEXT,
+  slug CITEXT PRIMARY KEY,
+  title CITEXT UNIQUE NOT NULL,
+  votes BIGINT DEFAULT 0
+);
 --
 -- CREATE TABLE IF NOT EXISTS Posts (
 --   author VARCHAR(100) NOT NULL REFERENCES Users(nickname),

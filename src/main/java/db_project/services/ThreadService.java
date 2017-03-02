@@ -22,7 +22,7 @@ public class ThreadService {
 
     public final List<ThreadModel> getThreadInfo(final String slug) {
         return jdbcTemplate.query(
-                "SELECT * FROM Threads WHERE slug = ?",
+                "SELECT * FROM threads WHERE slug = ?",
                 new Object[]{slug},
                 ThreadService::read
         );

@@ -58,7 +58,7 @@ public final class UserController {
         List<UserModel> users;
 
         try {
-            users = service.getUserFromDb(new UserModel("", "", "", nickname));
+            users = service.getUserFromDb(new UserModel(null, null, null, nickname));
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
