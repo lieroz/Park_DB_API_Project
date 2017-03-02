@@ -38,7 +38,7 @@ public class ThreadService {
                 rs.getString("author"),
                 dateFormat.format(timestamp),
                 rs.getString("forum"),
-                rs.getInt("id"),
+//                rs.getInt("id"),
                 rs.getString("message"),
                 rs.getString("slug"),
                 rs.getString("title"),

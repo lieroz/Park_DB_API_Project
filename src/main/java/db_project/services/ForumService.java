@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,10 +59,41 @@ final public class ForumService {
         );
     }
 
-    public final List<ThreadModel> getThreadsInfo(final String slug) {
+    public final List<ThreadModel> getThreadsInfo(
+            final String slug,
+            final Integer limit,
+            final String since,
+            final Boolean desc
+    ) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE forum = ?");
+        final List<Object> args = new ArrayList<>();
+        args.add(slug);
+
+        if (since != null) {
+            sql.append(" AND created ");
+
+            if (desc == Boolean.TRUE) {
+                sql.append("<= ?");
+
+            } else {
+                sql.append(">= ?");
+            }
+
+            args.add(Timestamp.valueOf(LocalDateTime.parse(since, DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        }
+
+        sql.append(" ORDER BY created");
+
+        if (desc == Boolean.TRUE) {
+            sql.append(" DESC");
+        }
+
+        sql.append(" LIMIT ?");
+        args.add(limit);
+
         return jdbcTemplate.query(
-                "SELECT * FROM threads WHERE forum = ?",
-                new Object[]{slug},
+                sql.toString(),
+                args.toArray(new Object[args.size()]),
                 ThreadService::read
         );
     }

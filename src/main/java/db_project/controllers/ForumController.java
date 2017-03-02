@@ -6,12 +6,14 @@ import db_project.services.ForumService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -108,7 +110,7 @@ public final class ForumController {
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
-            @RequestParam(value = "since", required = false) final String since,
+            @RequestParam(value = "since", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") final String since,
             @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
@@ -123,7 +125,7 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ThreadModel> threads = service.getThreadsInfo(slug);
+        List<ThreadModel> threads = service.getThreadsInfo(slug, limit, since, desc);
 
         return new ResponseEntity<>(threads, HttpStatus.OK);
     }
