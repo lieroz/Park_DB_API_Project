@@ -6,13 +6,16 @@ import db_project.services.ForumService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by lieroz on 27.02.17.
@@ -40,13 +43,13 @@ public final class ForumController {
             service.insertForumIntoDb(forum);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ForumModel(service.getForumInfo(forum.getSlug()).get(0)), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(new ForumModel(forum), HttpStatus.CREATED);
+        return new ResponseEntity<>(new ForumModel(service.getForumInfo(forum.getSlug()).get(0)), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/{slug}/create",
@@ -57,13 +60,14 @@ public final class ForumController {
             @RequestBody ThreadModel thread,
             @PathVariable(value = "slug") final String slug
     ) {
-        thread.setSlug(slug);
-        List<ThreadModel> slugs;
+        if (thread.getSlug() == null) {
+            thread.setSlug(slug);
+        }
 
         try {
-            slugs = service.insertThreadIntoDb(thread);
+            List<ThreadModel> threads = service.insertThreadIntoDb(thread);
 
-            if (slugs.isEmpty()) {
+            if (threads.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
@@ -74,7 +78,11 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(slugs.get(0), HttpStatus.CREATED);
+        if (Objects.equals(thread.getSlug(), thread.getForum())) {
+            thread.setSlug(null);
+        }
+
+        return new ResponseEntity<>(thread, HttpStatus.CREATED);
     }
 
     // TODO GET INFO ABOUT POSTS AND THREADS
@@ -101,6 +109,9 @@ public final class ForumController {
     // TODO GET INFO ABOUT VOTES
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
+            @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
+            @RequestParam(value = "since", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") final String since,
+            @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
         try {
@@ -114,7 +125,7 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ThreadModel> threads = service.getThreadsInfo(slug);
+        List<ThreadModel> threads = service.getThreadsInfo(slug, limit, since, desc);
 
         return new ResponseEntity<>(threads, HttpStatus.OK);
     }

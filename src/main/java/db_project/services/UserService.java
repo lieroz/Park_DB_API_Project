@@ -22,32 +22,22 @@ public final class UserService {
     }
 
     public final void insertUserIntoDb(final UserModel user) {
-        final String sql = "INSERT INTO Users (" +
-                "about, " +
-                "email, " +
-                "fullname, " +
-                "nickname" +
-                ") VALUES(?, ?, ?, ?)";
-        jdbcTemplate.update(
-                sql,
-                user.getAbout(),
-                user.getEmail(),
-                user.getFullname(),
-                user.getNickname()
-        );
+        final String sql = "INSERT INTO users (about, email, fullname, nickname) " +
+                "VALUES(?, ?, ?, ?)";
+        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(),
+                user.getNickname());
     }
 
     public final List<UserModel> getUserFromDb(final UserModel user) {
         return jdbcTemplate.query(
-                "SELECT * FROM Users WHERE " +
-                        "LOWER(email) = LOWER(?) OR " +
-                        "LOWER(nickname) = LOWER(?)",
-                new Object[]{user.getEmail(), user.getNickname()},
+                "SELECT * FROM users WHERE LOWER(nickname) = LOWER(?)" +
+                        "OR LOWER(email) = LOWER(?)",
+                new Object[]{user.getNickname(), user.getEmail()},
                 UserService::read);
     }
 
     public final void updateUserInfoFromDb(final UserModel user) {
-        final StringBuilder sql = new StringBuilder("UPDATE Users SET");
+        final StringBuilder sql = new StringBuilder("UPDATE users SET");
         final List<Object> args = new ArrayList<>();
 
         if (user.getAbout() != null && !user.getAbout().isEmpty()) {
@@ -70,7 +60,7 @@ public final class UserService {
         }
 
         sql.delete(sql.length() - 1, sql.length());
-        sql.append(" WHERE nickname = ?");
+        sql.append(" WHERE LOWER(nickname) = LOWER(?)");
         args.add(user.getNickname());
         jdbcTemplate.update(sql.toString(), args.toArray());
     }

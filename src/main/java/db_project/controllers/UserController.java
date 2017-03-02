@@ -42,7 +42,7 @@ public final class UserController {
             service.insertUserIntoDb(user);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getUserFromDb(user) ,HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getUserFromDb(user), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -58,7 +58,7 @@ public final class UserController {
         List<UserModel> users;
 
         try {
-            users = service.getUserFromDb(new UserModel("", "", "", nickname));
+            users = service.getUserFromDb(new UserModel(null, null, null, nickname));
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
