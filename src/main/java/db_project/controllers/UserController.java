@@ -18,8 +18,8 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/api/user/{nickname}")
-public class UserController {
+@RequestMapping(value = "/api/user/{nickname}")
+public final class UserController {
     private final JdbcTemplate jdbcTemplate;
     private final UserService service;
 
@@ -28,8 +28,11 @@ public class UserController {
         this.service = new UserService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserModel> createUser(
+    @RequestMapping(value = "/create",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<Object> createUser(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
@@ -39,7 +42,7 @@ public class UserController {
             service.insertUserIntoDb(user);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getUserFromDb(user), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -49,13 +52,13 @@ public class UserController {
     }
 
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserModel> viewProfile(
+    public final ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
         List<UserModel> users;
 
         try {
-            users = service.getUserFromDb(nickname);
+            users = service.getUserFromDb(new UserModel(null, null, null, nickname));
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
@@ -68,8 +71,11 @@ public class UserController {
         return new ResponseEntity<>(users.get(0), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/profile", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserModel> modifyProfile(
+    @RequestMapping(value = "/profile",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<UserModel> modifyProfile(
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
@@ -77,7 +83,7 @@ public class UserController {
 
         try {
             service.updateUserInfoFromDb(user);
-            List<UserModel> users = service.getUserFromDb(nickname);
+            List<UserModel> users = service.getUserFromDb(user);
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);

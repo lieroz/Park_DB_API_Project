@@ -1,6 +1,38 @@
-CREATE TABLE IF NOT EXISTS Users (
-  about VARCHAR(100),
-  email VARCHAR(100) UNIQUE,
-  fullname VARCHAR(100) UNIQUE,
-  nickname VARCHAR(100) PRIMARY KEY
+CREATE EXTENSION IF NOT EXISTS CITEXT;
+
+CREATE TABLE IF NOT EXISTS users (
+  about TEXT,
+  email CITEXT UNIQUE,
+  fullname CITEXT,
+  nickname CITEXT PRIMARY KEY
 );
+
+CREATE TABLE IF NOT EXISTS forums (
+  posts BIGINT DEFAULT NULL,
+  slug CITEXT PRIMARY KEY NOT NULL,
+  threads BIGINT DEFAULT NULL,
+  title CITEXT NOT NULL,
+  "user" CITEXT NOT NULL REFERENCES users (nickname)
+);
+
+CREATE TABLE IF NOT EXISTS threads (
+  author CITEXT NOT NULL REFERENCES users (nickname),
+  created TIMESTAMP DEFAULT NOW(),
+  forum CITEXT NOT NULL REFERENCES forums (slug),
+  id SERIAL,
+  message CITEXT,
+  slug CITEXT PRIMARY KEY,
+  title CITEXT NOT NULL,
+  votes BIGINT DEFAULT 0
+);
+--
+-- CREATE TABLE IF NOT EXISTS Posts (
+--   author VARCHAR(100) NOT NULL REFERENCES Users(nickname),
+--   created VARCHAR(100) DEFAULT 0,
+--   forum VARCHAR(100) NOT NULL REFERENCES Forums(slug),
+--   id SERIAL,
+--   isEdited BOOLEAN DEFAULT TRUE,
+--   message VARCHAR(100),
+--   parent BIGINT DEFAULT 0,
+--   thread VARCHAR(100) REFERENCES Threads(slug)
+-- );

@@ -14,7 +14,7 @@ import java.util.List;
  */
 
 @Service
-public class UserService {
+public final class UserService {
     private final JdbcTemplate jdbcTemplate;
 
     public UserService(final JdbcTemplate jdbcTemplate) {
@@ -22,18 +22,22 @@ public class UserService {
     }
 
     public final void insertUserIntoDb(final UserModel user) {
-        final String sql = "INSERT INTO Users (about, email, fullname, nickname) VALUES(?, ?, ?, ?)";
-        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(), user.getNickname());
+        final String sql = "INSERT INTO users (about, email, fullname, nickname) " +
+                "VALUES(?, ?, ?, ?)";
+        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(),
+                user.getNickname());
     }
 
-    public final List<UserModel> getUserFromDb(final String nickname) {
-        final String sql = "SELECT * FROM Users WHERE nickname = ?";
-
-        return jdbcTemplate.query(sql, new Object[]{nickname}, UserService::read);
+    public final List<UserModel> getUserFromDb(final UserModel user) {
+        return jdbcTemplate.query(
+                "SELECT * FROM users WHERE LOWER(nickname) = LOWER(?)" +
+                        "OR LOWER(email) = LOWER(?)",
+                new Object[]{user.getNickname(), user.getEmail()},
+                UserService::read);
     }
 
     public final void updateUserInfoFromDb(final UserModel user) {
-        final StringBuilder sql = new StringBuilder("UPDATE Users SET");
+        final StringBuilder sql = new StringBuilder("UPDATE users SET");
         final List<Object> args = new ArrayList<>();
 
         if (user.getAbout() != null && !user.getAbout().isEmpty()) {
@@ -56,12 +60,17 @@ public class UserService {
         }
 
         sql.delete(sql.length() - 1, sql.length());
-        sql.append(" WHERE nickname = ?");
+        sql.append(" WHERE LOWER(nickname) = LOWER(?)");
         args.add(user.getNickname());
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    private static UserModel read(ResultSet rs, int rowNum) throws SQLException {
-        return new UserModel(rs.getString("about"), rs.getString("email"), rs.getString("fullname"), rs.getString("nickname"));
+    public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
+        return new UserModel(
+                rs.getString("about"),
+                rs.getString("email"),
+                rs.getString("fullname"),
+                rs.getString("nickname")
+        );
     }
 }
