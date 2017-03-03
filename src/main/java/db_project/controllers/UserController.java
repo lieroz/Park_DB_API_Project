@@ -73,7 +73,7 @@ public final class UserController {
     public final ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
-        List<UserModel> users;
+        final List<UserModel> users;
 
         try {
             users = service.getUserFromDb(new UserModel(null, null, null, nickname));
@@ -105,7 +105,7 @@ public final class UserController {
 
         try {
             service.updateUserInfoFromDb(user);
-            List<UserModel> users = service.getUserFromDb(user);
+            final List<UserModel> users = service.getUserFromDb(user);
 
             if (users.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);

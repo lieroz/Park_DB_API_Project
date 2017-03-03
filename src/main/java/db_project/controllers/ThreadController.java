@@ -2,8 +2,10 @@ package db_project.controllers;
 
 import db_project.models.PostModel;
 import db_project.models.ThreadModel;
+import db_project.models.VoteModel;
 import db_project.services.ThreadService;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,16 +40,15 @@ public class ThreadController {
         this.service = new ThreadService(jdbcTemplate);
     }
 
-    // TODO Where goes id here???
     @RequestMapping(value = "/create",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<PostModel>> createPosts(
-            @RequestBody List<PostModel> posts,
+            @RequestBody final List<PostModel> posts,
             @PathVariable(value = "slug") final String slug
     ) {
-        Integer id;
+        final Integer id;
 
         try {
             id = Integer.valueOf(slug);
@@ -63,7 +64,7 @@ public class ThreadController {
     }
 
     /**
-     * @brief Get details about spesific thread.
+     * @brief Get details about specific thread.
      * @brief {slug} stands for thread-slug.
      */
 
@@ -71,7 +72,7 @@ public class ThreadController {
     public final ResponseEntity<ThreadModel> viewThread(
             @PathVariable(value = "slug") final String slug
     ) {
-        List<ThreadModel> threads;
+        final List<ThreadModel> threads;
 
         try {
             threads = service.getThreadInfo(slug);
@@ -79,6 +80,38 @@ public class ThreadController {
             if (threads.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
+    }
+
+    /**
+     * @brief Vote for a specific thread.
+     * @brief {slug} stands for thread-slug.
+     */
+
+    @RequestMapping(value = "/vote",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<ThreadModel> voteForThread(
+            @RequestBody final VoteModel vote,
+            @PathVariable("slug") final String slug
+    ) {
+        final List<ThreadModel> threads;
+
+        try {
+            threads = service.updateVotes(vote, slug);
+
+            if (threads.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+        } catch (DuplicateKeyException ex) {
+            return new ResponseEntity<>(service.getThreadInfo(slug).get(0) ,HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

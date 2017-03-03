@@ -75,7 +75,7 @@ public final class ForumController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ThreadModel> createSlug(
-            @RequestBody ThreadModel thread,
+            @RequestBody final ThreadModel thread,
             @PathVariable(value = "slug") final String slug
     ) {
         if (thread.getSlug() == null) {
@@ -86,7 +86,7 @@ public final class ForumController {
             thread.setForum(slug);
         }
 
-        List<ThreadModel> threads;
+        final List<ThreadModel> threads;
 
         try {
             threads = service.insertThreadIntoDb(thread);
@@ -119,7 +119,7 @@ public final class ForumController {
     public final ResponseEntity<ForumModel> viewForum(
             @PathVariable("slug") final String slug
     ) {
-        List<ForumModel> forums;
+        final List<ForumModel> forums;
 
         try {
             forums = service.getForumInfo(slug);
@@ -149,7 +149,7 @@ public final class ForumController {
             @PathVariable("slug") final String slug
     ) {
         try {
-            List<ForumModel> forums = service.getForumInfo(slug);
+            final List<ForumModel> forums = service.getForumInfo(slug);
 
             if (forums.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
@@ -159,7 +159,7 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ThreadModel> threads = service.getThreadsInfo(slug, limit, since, desc);
+        final List<ThreadModel> threads = service.getThreadsInfo(slug, limit, since, desc);
 
         return new ResponseEntity<>(threads, HttpStatus.OK);
     }

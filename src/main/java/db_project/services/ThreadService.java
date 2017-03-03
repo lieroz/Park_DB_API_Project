@@ -2,6 +2,7 @@ package db_project.services;
 
 import db_project.models.PostModel;
 import db_project.models.ThreadModel;
+import db_project.models.VoteModel;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +12,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Created by lieroz on 27.02.17.
@@ -101,7 +100,6 @@ public class ThreadService {
      * @brief Get all information about a specific thread from database.
      */
 
-    // TODO issue with id here, where to find thread???
     public final List<ThreadModel> getThreadInfo(final String slug) {
         final StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE ");
         final Integer id;
@@ -115,6 +113,54 @@ public class ThreadService {
         }
 
         return jdbcTemplate.query(sql.append("id = ?").toString(),
+                new Object[]{id}, ThreadService::read);
+    }
+
+    /**
+     * @brief Update votes for thread int database.
+     */
+
+    private final static Map<String, Integer> users = new LinkedHashMap<>();
+
+    public final List<ThreadModel> updateVotes(final VoteModel vote, final String slug) {
+        if (users.containsKey(vote.getNickname())) {
+
+            if (users.get(vote.getNickname()) < 0 && vote.getVoice() < 0) {
+                vote.setVoice(0);
+
+            } else if (users.get(vote.getNickname()) < 0 && vote.getVoice() > 0) {
+                vote.setVoice(2);
+
+            } else if (users.get(vote.getNickname()) > 0 && vote.getVoice() < 0) {
+                vote.setVoice(-2);
+
+            } else {
+                vote.setVoice(0);
+            }
+        }
+
+        users.put(vote.getNickname(), vote.getVoice());
+
+        final StringBuilder sql = new StringBuilder("UPDATE threads SET votes = votes + ? WHERE ");
+        final List<Object> args = new ArrayList<>();
+        final Integer id;
+        args.add(vote.getVoice());
+
+        try {
+            id = Integer.valueOf(slug);
+
+        } catch (NumberFormatException ex) {
+            args.add(slug);
+            jdbcTemplate.update(sql.append("LOWER(slug) = LOWER(?)").toString(), args.toArray());
+
+            return jdbcTemplate.query("SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
+                    new Object[]{slug}, ThreadService::read);
+        }
+
+        args.add(id);
+        jdbcTemplate.update(sql.append("id = ?").toString(), args.toArray());
+
+        return jdbcTemplate.query("SELECT * FROM threads WHERE id = ?",
                 new Object[]{id}, ThreadService::read);
     }
 
