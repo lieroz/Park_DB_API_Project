@@ -7,7 +7,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by lieroz on 27.02.17.
  */
 
+/**
+ * @ brief Model representing Thread in database.
+ */
+
 public class ThreadModel {
+    /**
+     * @ brief Fields which represent info about thread.
+     */
+
     private String author;
     private String created;
     private String forum;
@@ -16,6 +24,10 @@ public class ThreadModel {
     private String slug;
     private String title;
     private Integer votes;
+
+    /**
+     * @ brief Constructor that serializes object into JSON.
+     */
 
     @JsonCreator
     public ThreadModel(
@@ -38,6 +50,10 @@ public class ThreadModel {
         this.votes = votes;
     }
 
+    /**
+     * @ brief Copy Constructor.
+     */
+
     public ThreadModel(final ThreadModel other) {
         this.author = other.getAuthor();
         this.created = other.getCreated();
@@ -48,6 +64,11 @@ public class ThreadModel {
         this.title = other.getTitle();
         this.votes = other.getVotes();
     }
+
+    /**
+     * @ brief Getters and setters.
+     * @ brief Getters are need for object serialization into JSON.
+     */
 
     public final String getAuthor() {
         return this.author;

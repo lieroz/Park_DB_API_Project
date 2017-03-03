@@ -7,22 +7,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by lieroz on 28.02.17.
  */
 
+/**
+ * @ brief Model representing Post in database.
+ */
+
 public class PostModel {
+    /**
+     * @ brief Fields which represent info about post.
+     */
+
     private String author;
     private String created;
     private String forum;
-    private Integer id;
+//    private Integer id;
     private Boolean isEdited;
     private String message;
     private Integer parent;
     private Integer thread;
+
+    /**
+     * @ brief Constructor that serializes object into JSON.
+     */
 
     @JsonCreator
     public PostModel(
             @JsonProperty("author") final String author,
             @JsonProperty("created") final String created,
             @JsonProperty("forum") final String forum,
-            @JsonProperty("id") final Integer id,
+//            @JsonProperty("id") final Integer id,
             @JsonProperty("isEdited") final Boolean isEdited,
             @JsonProperty("message") final String message,
             @JsonProperty("parent") final Integer parent,
@@ -31,23 +43,32 @@ public class PostModel {
         this.author = author;
         this.created = created;
         this.forum = forum;
-        this.id = id;
+//        this.id = id;
         this.isEdited = isEdited;
         this.message = message;
         this.parent = parent;
         this.thread = thread;
     }
 
+    /**
+     * @ brief Copy Constructor.
+     */
+
     public PostModel(final PostModel other) {
         this.author = author;
         this.created = created;
         this.forum = forum;
-        this.id = id;
+//        this.id = id;
         this.isEdited = isEdited;
         this.message = message;
         this.parent = parent;
         this.thread = thread;
     }
+
+    /**
+     * @ brief Getters and setters.
+     * @ brief Getters are need for object serialization into JSON.
+     */
 
     public final String getAuthor() {
         return this.author;
@@ -73,19 +94,19 @@ public class PostModel {
         this.forum = forum;
     }
 
-    public final Integer getId() {
-        return this.id;
-    }
+//    public final Integer getId() {
+//        return this.id;
+//    }
+//
+//    public void setId(final Integer id) {
+//        this.id = id;
+//    }
 
-    public void setId(final Integer id) {
-        this.id = id;
-    }
-
-    public final Boolean getEdited() {
+    public final Boolean getIsEdited() {
         return this.isEdited;
     }
 
-    public void setEdited(final Boolean isEdited) {
+    public void setIsEdited(final Boolean isEdited) {
         this.isEdited = isEdited;
     }
 

@@ -16,11 +16,18 @@ import java.util.List;
 
 @Service
 public class ThreadService {
+    /**
+     * @ brief Class used for communication with database.
+     */
     private final JdbcTemplate jdbcTemplate;
 
     public ThreadService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
+
+    /**
+     * @ brief Get all information about a specific thread from database.
+     */
 
     public final List<ThreadModel> getThreadInfo(final String slug) {
         return jdbcTemplate.query(
@@ -29,6 +36,10 @@ public class ThreadService {
                 ThreadService::read
         );
     }
+
+    /**
+     * @ brief Serialize database row into ThreadModel object.
+     */
 
     public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
         Timestamp timestamp = rs.getTimestamp("created");

@@ -17,19 +17,34 @@ import java.util.List;
  * Created by lieroz on 27.02.17.
  */
 
+/**
+ * @ brief Wrapper on JdbcTemplate for more convenient usage.
+ */
+
 @Service
 final public class ForumService {
+    /**
+     * @ brief Class used for communication with database.
+     */
     private final JdbcTemplate jdbcTemplate;
 
     public ForumService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * @ brief Insert new forum into database.
+     */
+
     public final void insertForumIntoDb(final ForumModel forum) {
         final String sql = "INSERT INTO forums (slug, title, \"user\") VALUES(?, ?, " +
                 "(SELECT nickname FROM users WHERE LOWER(nickname) = LOWER(?)))";
         jdbcTemplate.update(sql, forum.getSlug(), forum.getTitle(), forum.getUser());
     }
+
+    /**
+     * @ brief Insert new thread into database.
+     */
 
     public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
         if (thread.getCreated() == null) {
@@ -51,6 +66,10 @@ final public class ForumService {
         );
     }
 
+    /**
+     * @ brief Get information about forum.
+     */
+
     public final List<ForumModel> getForumInfo(final String slug) {
         return jdbcTemplate.query(
                 "SELECT * FROM forums WHERE LOWER(slug) = LOWER(?)",
@@ -58,6 +77,10 @@ final public class ForumService {
                 ForumService::read
         );
     }
+
+    /**
+     * @ brief Get information about all threads in a specific forum.
+     */
 
     public final List<ThreadModel> getThreadsInfo(
             final String slug,
@@ -97,6 +120,10 @@ final public class ForumService {
                 ThreadService::read
         );
     }
+
+    /**
+     * @ brief Serialize database row into ForumModel object.
+     */
 
     public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(

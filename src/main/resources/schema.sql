@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS threads (
 CREATE TABLE IF NOT EXISTS posts (
   author CITEXT NOT NULL REFERENCES users (nickname),
   created TIMESTAMP DEFAULT NOW(),
-  forum CITEXT NOT NULL REFERENCES forums(slug),
+  forum CITEXT NOT NULL REFERENCES forums (slug),
   id SERIAL PRIMARY KEY,
   isEdited BOOLEAN DEFAULT FALSE,
   message CITEXT,
