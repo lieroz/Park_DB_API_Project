@@ -19,7 +19,7 @@ public class PostModel {
     private String author;
     private String created;
     private String forum;
-//    private Integer id;
+    private Integer id;
     private Boolean isEdited;
     private String message;
     private Integer parent;
@@ -34,7 +34,7 @@ public class PostModel {
             @JsonProperty("author") final String author,
             @JsonProperty("created") final String created,
             @JsonProperty("forum") final String forum,
-//            @JsonProperty("id") final Integer id,
+            @JsonProperty("id") final Integer id,
             @JsonProperty("isEdited") final Boolean isEdited,
             @JsonProperty("message") final String message,
             @JsonProperty("parent") final Integer parent,
@@ -43,7 +43,7 @@ public class PostModel {
         this.author = author;
         this.created = created;
         this.forum = forum;
-//        this.id = id;
+        this.id = id;
         this.isEdited = isEdited;
         this.message = message;
         this.parent = parent;
@@ -58,7 +58,7 @@ public class PostModel {
         this.author = author;
         this.created = created;
         this.forum = forum;
-//        this.id = id;
+        this.id = id;
         this.isEdited = isEdited;
         this.message = message;
         this.parent = parent;
@@ -94,13 +94,13 @@ public class PostModel {
         this.forum = forum;
     }
 
-//    public final Integer getId() {
-//        return this.id;
-//    }
-//
-//    public void setId(final Integer id) {
-//        this.id = id;
-//    }
+    public final Integer getId() {
+        return this.id;
+    }
+
+    public void setId(final Integer id) {
+        this.id = id;
+    }
 
     public final Boolean getIsEdited() {
         return this.isEdited;

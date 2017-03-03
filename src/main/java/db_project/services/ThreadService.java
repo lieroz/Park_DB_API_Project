@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
@@ -34,11 +35,66 @@ public class ThreadService {
     }
 
     /**
-     * @brief Insert multiple posts into database.
+     * @brief Insert multiple posts into database by ID.
      */
 
-    public final List<PostModel> insertPostIntoDb(final List<PostModel> posts, final Integer id) {
-        return posts;
+    public final List<PostModel> insertPostsIntoDbById(final List<PostModel> posts, final Integer id) {
+        for (PostModel post : posts) {
+
+            if (post.getCreated() == null) {
+                post.setCreated(LocalDateTime.now().toString());
+            }
+
+            Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
+
+            if (!post.getCreated().endsWith("Z")) {
+                timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
+            }
+
+            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread) " +
+                    "VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?)";
+
+            jdbcTemplate.update(sql, post.getAuthor(), timestamp, id,
+                    post.getMessage(), id);
+        }
+
+        return jdbcTemplate.query(
+                "SELECT * FROM posts WHERE thread = ?",
+                new Object[]{id},
+                PostService::read
+        );
+    }
+
+    /**
+     * @brief Insert multiple posts into database by slug.
+     */
+
+    public final List<PostModel> insertPostsIntoDbBySlug(final List<PostModel> posts, final String slug) {
+        for (PostModel post : posts) {
+
+            if (post.getCreated() == null) {
+                post.setCreated(LocalDateTime.now().toString());
+            }
+
+            Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
+
+            if (!post.getCreated().endsWith("Z")) {
+                timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
+            }
+
+            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread) " +
+                    "VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
+                    "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)))";
+
+            jdbcTemplate.update(sql, post.getAuthor(), timestamp, slug,
+                    post.getMessage(), slug);
+        }
+
+        return jdbcTemplate.query(
+                "SELECT * FROM posts WHERE thread = (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))",
+                new Object[]{slug},
+                PostService::read
+        );
     }
 
     /**
@@ -47,8 +103,8 @@ public class ThreadService {
 
     // TODO issue with id here, where to find thread???
     public final List<ThreadModel> getThreadInfo(final String slug) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE ");
-        Integer id;
+        final StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE ");
+        final Integer id;
 
         try {
             id  = Integer.valueOf(slug);
@@ -67,15 +123,15 @@ public class ThreadService {
      */
 
     public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
-        Timestamp timestamp = rs.getTimestamp("created");
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        final Timestamp timestamp = rs.getTimestamp("created");
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+03:00"));
 
         return new ThreadModel(
                 rs.getString("author"),
                 dateFormat.format(timestamp),
                 rs.getString("forum"),
-//                rs.getInt("id"),
+                rs.getInt("id"),
                 rs.getString("message"),
                 rs.getString("slug"),
                 rs.getString("title"),

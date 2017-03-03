@@ -19,7 +19,7 @@ public class ThreadModel {
     private String author;
     private String created;
     private String forum;
-//    private Integer id;
+    private Integer id;
     private String message;
     private String slug;
     private String title;
@@ -34,7 +34,7 @@ public class ThreadModel {
             @JsonProperty("author") final String author,
             @JsonProperty("created") final String created,
             @JsonProperty("forum") final String forum,
-//            @JsonProperty("id") final Integer id,
+            @JsonProperty("id") final Integer id,
             @JsonProperty("message") final String message,
             @JsonProperty("slug") final String slug,
             @JsonProperty("title") final String title,
@@ -43,7 +43,7 @@ public class ThreadModel {
         this.author = author;
         this.created = created;
         this.forum = forum;
-//        this.id = id;
+        this.id = id;
         this.message = message;
         this.slug = slug;
         this.title = title;
@@ -58,7 +58,7 @@ public class ThreadModel {
         this.author = other.getAuthor();
         this.created = other.getCreated();
         this.forum = other.getForum();
-//        this.id = other.getId();
+        this.id = other.getId();
         this.message = other.getMessage();
         this.slug = other.getSlug();
         this.title = other.getTitle();
@@ -94,13 +94,13 @@ public class ThreadModel {
         this.forum = forum;
     }
 
-//    public final Integer getId() {
-//        return this.id;
-//    }
-//
-//    public void setId(final Integer id) {
-//        this.id = id;
-//    }
+    public final Integer getId() {
+        return this.id;
+    }
+
+    public void setId(final Integer id) {
+        this.id = id;
+    }
 
     public final String getMessage() {
         return this.message;

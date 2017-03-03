@@ -22,7 +22,7 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping(value = "/api/thread")
+@RequestMapping(value = "/api/thread/{slug}")
 public class ThreadController {
     /**
      * @brief Class used for communication with database.
@@ -39,26 +39,27 @@ public class ThreadController {
     }
 
     // TODO Where goes id here???
-    @RequestMapping(value = "/{id}/create",
+    @RequestMapping(value = "/create",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<PostModel>> createPosts(
             @RequestBody List<PostModel> posts,
-            @PathVariable(value = "id") final Integer id
+            @PathVariable(value = "slug") final String slug
     ) {
-        List<ThreadModel> test = jdbcTemplate.query(
-                "SELECT * FROM threads WHERE id = ?",
-                new Object[]{id + 1},
-                ThreadService::read
-        );
+        Integer id;
 
-        for (PostModel post : posts) {
-            post.setThread(id + 1);
-            post.setForum(test.get(0).getForum());
+        try {
+            id = Integer.valueOf(slug);
+
+        } catch (NumberFormatException ex) {
+            return new ResponseEntity<>(service.insertPostsIntoDbBySlug(posts, slug), HttpStatus.CREATED);
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(posts, HttpStatus.CREATED);
+        return new ResponseEntity<>(service.insertPostsIntoDbById(posts, id), HttpStatus.CREATED);
     }
 
     /**
@@ -66,7 +67,7 @@ public class ThreadController {
      * @brief {slug} stands for thread-slug.
      */
 
-    @RequestMapping(value = "{slug}/details", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ThreadModel> viewThread(
             @PathVariable(value = "slug") final String slug
     ) {
