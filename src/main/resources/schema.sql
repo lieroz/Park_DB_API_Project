@@ -26,6 +26,11 @@ CREATE TABLE IF NOT EXISTS threads (
   votes BIGINT DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS uservotes (
+  nickname CITEXT NOT NULL REFERENCES users (nickname),
+  voice INTEGER DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS posts (
   author CITEXT NOT NULL REFERENCES users (nickname),
   created TIMESTAMP DEFAULT NOW(),

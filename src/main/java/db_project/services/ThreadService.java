@@ -120,30 +120,46 @@ public class ThreadService {
      * @brief Update votes for thread int database.
      */
 
-    private final static Map<String, Integer> users = new LinkedHashMap<>();
+    private void getUserVotes(final VoteModel vote) {
+        final List<VoteModel> usersList = jdbcTemplate.query("SELECT * FROM uservotes " +
+                        "WHERE LOWER(nickname) = LOWER(?)",
+                new Object[]{vote.getNickname()}, (rs, rowNum) ->
+                        new VoteModel(rs.getString("nickname"), rs.getInt("voice")));
+        final Map<String, Integer> usersMap = new LinkedHashMap<>();
 
-    public final List<ThreadModel> updateVotes(final VoteModel vote, final String slug) {
-        if (users.containsKey(vote.getNickname())) {
+        for (VoteModel user : usersList) {
+            usersMap.put(user.getNickname(), user.getVoice());
+        }
 
-            if (users.get(vote.getNickname()) < 0 && vote.getVoice() < 0) {
+        if (usersMap.containsKey(vote.getNickname())) {
+
+            if (usersMap.get(vote.getNickname()) < 0 && vote.getVoice() < 0) {
                 vote.setVoice(0);
 
-            } else if (users.get(vote.getNickname()) < 0 && vote.getVoice() > 0) {
+            } else if (usersMap.get(vote.getNickname()) < 0 && vote.getVoice() > 0) {
                 vote.setVoice(2);
 
-            } else if (users.get(vote.getNickname()) > 0 && vote.getVoice() < 0) {
+            } else if (usersMap.get(vote.getNickname()) > 0 && vote.getVoice() < 0) {
                 vote.setVoice(-2);
 
             } else {
                 vote.setVoice(0);
             }
+
+            jdbcTemplate.update("UPDATE uservotes SET voice = voice + ? " +
+                    "WHERE LOWER(nickname) = LOWER(?)", vote.getVoice(), vote.getNickname());
+
+        } else {
+            jdbcTemplate.update("INSERT INTO uservotes (nickname, voice) VALUES(?, ?)",
+                    vote.getNickname(), vote.getVoice());
         }
+    }
 
-        users.put(vote.getNickname(), vote.getVoice());
-
+    public final List<ThreadModel> updateVotes(final VoteModel vote, final String slug) {
         final StringBuilder sql = new StringBuilder("UPDATE threads SET votes = votes + ? WHERE ");
         final List<Object> args = new ArrayList<>();
         final Integer id;
+        getUserVotes(vote);
         args.add(vote.getVoice());
 
         try {
