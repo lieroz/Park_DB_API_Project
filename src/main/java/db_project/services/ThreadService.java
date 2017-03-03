@@ -50,18 +50,20 @@ public class ThreadService {
                 timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
             }
 
-            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread) " +
-                    "VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?)";
+            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread, parent) " +
+                    "VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?, ?)";
 
             jdbcTemplate.update(sql, post.getAuthor(), timestamp, id,
-                    post.getMessage(), id);
+                    post.getMessage(), id, post.getParent());
         }
 
-        return jdbcTemplate.query(
+        final List<PostModel> dbPosts = jdbcTemplate.query(
                 "SELECT * FROM posts WHERE thread = ?",
                 new Object[]{id},
                 PostService::read
         );
+
+        return dbPosts.subList(dbPosts.size() - posts.size(), dbPosts.size());
     }
 
     /**
@@ -81,19 +83,21 @@ public class ThreadService {
                 timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
             }
 
-            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread) " +
+            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread, parent) " +
                     "VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
-                    "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)))";
+                    "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)), ?)";
 
             jdbcTemplate.update(sql, post.getAuthor(), timestamp, slug,
-                    post.getMessage(), slug);
+                    post.getMessage(), slug, post.getParent());
         }
 
-        return jdbcTemplate.query(
+        final List<PostModel> dbPosts = jdbcTemplate.query(
                 "SELECT * FROM posts WHERE thread = (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))",
                 new Object[]{slug},
                 PostService::read
         );
+
+        return dbPosts.subList(dbPosts.size() - posts.size(), dbPosts.size());
     }
 
     /**
