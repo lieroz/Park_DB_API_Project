@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 /**
- * @ brief Model representing Post in database.
+ * @brief Model representing Post in database.
  */
 
 public class PostModel {
     /**
-     * @ brief Fields which represent info about post.
+     * @brief Fields which represent info about post.
      */
 
     private String author;
@@ -26,7 +26,7 @@ public class PostModel {
     private Integer thread;
 
     /**
-     * @ brief Constructor that serializes object into JSON.
+     * @brief Constructor that serializes object into JSON.
      */
 
     @JsonCreator
@@ -51,7 +51,7 @@ public class PostModel {
     }
 
     /**
-     * @ brief Copy Constructor.
+     * @brief Copy Constructor.
      */
 
     public PostModel(final PostModel other) {
@@ -66,8 +66,8 @@ public class PostModel {
     }
 
     /**
-     * @ brief Getters and setters.
-     * @ brief Getters are need for object serialization into JSON.
+     * @brief Getters and setters.
+     * @brief Getters are need for object serialization into JSON.
      */
 
     public final String getAuthor() {

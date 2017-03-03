@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 /**
- * @ brief Model representing Forum in database.
+ * @brief Model representing Forum in database.
  */
 
 public class ForumModel {
     /**
-     * @ brief Fields which represent info about forum.
+     * @brief Fields which represent info about forum.
      */
 
     private Integer posts;
@@ -23,7 +23,7 @@ public class ForumModel {
     private String user;
 
     /**
-     * @ brief Constructor that serializes object into JSON.
+     * @brief Constructor that serializes object into JSON.
      */
 
     @JsonCreator
@@ -42,7 +42,7 @@ public class ForumModel {
     }
 
     /**
-     * @ brief Copy Constructor.
+     * @brief Copy Constructor.
      */
 
     public ForumModel(final ForumModel other) {
@@ -54,8 +54,8 @@ public class ForumModel {
     }
 
     /**
-     * @ brief Getters and setters.
-     * @ brief Getters are need for object serialization into JSON.
+     * @brief Getters and setters.
+     * @brief Getters are need for object serialization into JSON.
      */
 
     public final Integer getPosts() {

@@ -10,7 +10,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -18,13 +20,13 @@ import java.util.List;
  */
 
 /**
- * @ brief Wrapper on JdbcTemplate for more convenient usage.
+ * @brief Wrapper on JdbcTemplate for more convenient usage.
  */
 
 @Service
 final public class ForumService {
     /**
-     * @ brief Class used for communication with database.
+     * @brief Class used for communication with database.
      */
     private final JdbcTemplate jdbcTemplate;
 
@@ -33,7 +35,7 @@ final public class ForumService {
     }
 
     /**
-     * @ brief Insert new forum into database.
+     * @brief Insert new forum into database.
      */
 
     public final void insertForumIntoDb(final ForumModel forum) {
@@ -43,7 +45,7 @@ final public class ForumService {
     }
 
     /**
-     * @ brief Insert new thread into database.
+     * @brief Insert new thread into database.
      */
 
     public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
@@ -51,7 +53,12 @@ final public class ForumService {
             thread.setCreated(LocalDateTime.now().toString());
         }
 
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(thread.getCreated(), DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(thread.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
+
+        if (!thread.getCreated().endsWith("Z")) {
+            timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
+        }
+
         final String sql = "INSERT INTO threads (author, created, forum, \"message\", " +
                 "slug, title) VALUES(?, ?, " +
                 "(SELECT slug FROM forums WHERE LOWER(slug) = LOWER(?)), " +
@@ -69,7 +76,7 @@ final public class ForumService {
     }
 
     /**
-     * @ brief Get information about forum.
+     * @brief Get information about forum.
      */
 
     public final List<ForumModel> getForumInfo(final String slug) {
@@ -81,7 +88,7 @@ final public class ForumService {
     }
 
     /**
-     * @ brief Get information about a specific thread.
+     * @brief Get information about a specific thread.
      */
 
     public final List<ThreadModel> getThreadInfo(final String slug) {
@@ -93,7 +100,7 @@ final public class ForumService {
     }
 
     /**
-     * @ brief Get information about all threads in a specific forum.
+     * @brief Get information about all threads in a specific forum.
      */
 
     public final List<ThreadModel> getThreadsInfo(
@@ -136,7 +143,7 @@ final public class ForumService {
     }
 
     /**
-     * @ brief Serialize database row into ForumModel object.
+     * @brief Serialize database row into ForumModel object.
      */
 
     public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {

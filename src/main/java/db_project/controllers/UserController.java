@@ -18,18 +18,18 @@ import java.util.List;
  */
 
 /**
- * @ Implementation of class that is responsible for handling all requests about user.
+ * @brief Implementation of class that is responsible for handling all requests about user.
  */
 
 @RestController
 @RequestMapping(value = "/api/user/{nickname}")
 public final class UserController {
     /**
-     * @ brief Class used for communication with database.
+     * @brief Class used for communication with database.
      */
     private final JdbcTemplate jdbcTemplate;
     /**
-     * @ brief Wrapper on JdbcTemplate for more convenient usage.
+     * @brief Wrapper on JdbcTemplate for more convenient usage.
      */
     private final UserService service;
 
@@ -39,7 +39,7 @@ public final class UserController {
     }
 
     /**
-     * @ brief User creation method.
+     * @brief User creation method.
      */
 
     @RequestMapping(value = "/create",
@@ -66,7 +66,7 @@ public final class UserController {
     }
 
     /**
-     * @ brief Get user profile method.
+     * @brief Get user profile method.
      */
 
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -90,7 +90,7 @@ public final class UserController {
     }
 
     /**
-     * @ brief Change user profile method.
+     * @brief Change user profile method.
      */
 
     @RequestMapping(value = "/profile",

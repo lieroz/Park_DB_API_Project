@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 /**
- * @ brief Model representing Thread in database.
+ * @brief Model representing Thread in database.
  */
 
 public class ThreadModel {
     /**
-     * @ brief Fields which represent info about thread.
+     * @brief Fields which represent info about thread.
      */
 
     private String author;
@@ -26,7 +26,7 @@ public class ThreadModel {
     private Integer votes;
 
     /**
-     * @ brief Constructor that serializes object into JSON.
+     * @brief Constructor that serializes object into JSON.
      */
 
     @JsonCreator
@@ -51,7 +51,7 @@ public class ThreadModel {
     }
 
     /**
-     * @ brief Copy Constructor.
+     * @brief Copy Constructor.
      */
 
     public ThreadModel(final ThreadModel other) {
@@ -66,8 +66,8 @@ public class ThreadModel {
     }
 
     /**
-     * @ brief Getters and setters.
-     * @ brief Getters are need for object serialization into JSON.
+     * @brief Getters and setters.
+     * @brief Getters are need for object serialization into JSON.
      */
 
     public final String getAuthor() {

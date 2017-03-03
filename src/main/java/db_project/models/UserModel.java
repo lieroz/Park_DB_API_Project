@@ -8,12 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 /**
- * @ brief Model representing User in database.
+ * @brief Model representing User in database.
  */
 
 public class UserModel {
     /**
-     * @ brief Fields which represent info about user.
+     * @brief Fields which represent info about user.
      */
 
     private String about;
@@ -22,7 +22,7 @@ public class UserModel {
     private String nickname;
 
     /**
-     * @ brief Constructor that serializes object into JSON.
+     * @brief Constructor that serializes object into JSON.
      */
 
     @JsonCreator
@@ -39,7 +39,7 @@ public class UserModel {
     }
 
     /**
-     * @ brief Copy Constructor.
+     * @brief Copy Constructor.
      */
 
     public UserModel(final UserModel other) {
@@ -50,8 +50,8 @@ public class UserModel {
     }
 
     /**
-     * @ brief Getters and setters.
-     * @ brief Getters are need for object serialization into JSON.
+     * @brief Getters and setters.
+     * @brief Getters are need for object serialization into JSON.
      */
 
     public final String getAbout() {

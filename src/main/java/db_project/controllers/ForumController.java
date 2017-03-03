@@ -21,18 +21,18 @@ import java.util.Objects;
  */
 
 /**
- * @ Implementation of class that is responsible for handling all requests about forum.
+ * @brief Implementation of class that is responsible for handling all requests about forum.
  */
 
 @RestController
 @RequestMapping(value = "api/forum")
 public final class ForumController {
     /**
-     * @ brief Class used for communication with database.
+     * @brief Class used for communication with database.
      */
     private final JdbcTemplate jdbcTemplate;
     /**
-     * @ brief Wrapper on JdbcTemplate for more convenient usage.
+     * @brief Wrapper on JdbcTemplate for more convenient usage.
      */
     private final ForumService service;
 
@@ -42,7 +42,7 @@ public final class ForumController {
     }
 
     /**
-     * @ brief Create forum.
+     * @brief Create forum.
      */
 
     @RequestMapping(value = "/create",
@@ -66,8 +66,8 @@ public final class ForumController {
     }
 
     /**
-     * @ brief Create thread.
-     * @ brief {slug} stands for forum-slug here.
+     * @brief Create thread.
+     * @brief {slug} stands for forum-slug here.
      */
 
     @RequestMapping(value = "/{slug}/create",
@@ -106,16 +106,12 @@ public final class ForumController {
             threads.get(0).setSlug(null);
         }
 
-        if (thread.getCreated() != null) {
-            threads.get(0).setCreated(thread.getCreated());
-        }
-
         return new ResponseEntity<>(threads.get(0), HttpStatus.CREATED);
     }
 
     /**
-     * @ brief Get all information about forum.
-     * @ brief {slug} stands for forum-slug here.
+     * @brief Get all information about forum.
+     * @brief {slug} stands for forum-slug here.
      */
 
     // TODO GET INFO ABOUT POSTS AND THREADS
@@ -140,15 +136,15 @@ public final class ForumController {
     }
 
     /**
-     * @ brief Get all threads from a forum.
-     * @ brief {slug} stands for forum-slug here.
+     * @brief Get all threads from a forum.
+     * @brief {slug} stands for forum-slug here.
      */
 
     // TODO GET INFO ABOUT VOTES
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
-            @RequestParam(value = "since", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX") final String since,
+            @RequestParam(value = "since", required = false) final String since,
             @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {

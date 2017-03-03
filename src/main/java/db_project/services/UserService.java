@@ -14,13 +14,13 @@ import java.util.List;
  */
 
 /**
- * @ brief Wrapper on JdbcTemplate for more convenient usage.
+ * @brief Wrapper on JdbcTemplate for more convenient usage.
  */
 
 @Service
 public final class UserService {
     /**
-     * @ brief Class used for communication with database.
+     * @brief Class used for communication with database.
      */
     private final JdbcTemplate jdbcTemplate;
 
@@ -29,7 +29,7 @@ public final class UserService {
     }
 
     /**
-     * @ brief Add new user to database.
+     * @brief Add new user to database.
      */
 
     public final void insertUserIntoDb(final UserModel user) {
@@ -40,7 +40,7 @@ public final class UserService {
     }
 
     /**
-     * @ brief Get information about user.
+     * @brief Get information about user.
      */
 
     public final List<UserModel> getUserFromDb(final UserModel user) {
@@ -52,7 +52,7 @@ public final class UserService {
     }
 
     /**
-     * @ brief Update current information about a specific user.
+     * @brief Update current information about a specific user.
      */
 
     public final void updateUserInfoFromDb(final UserModel user) {
@@ -85,7 +85,7 @@ public final class UserService {
     }
 
     /**
-     * @ brief Serialize database row into UserModel object.
+     * @brief Serialize database row into UserModel object.
      */
 
     public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
