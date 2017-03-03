@@ -29,12 +29,21 @@ public class ThreadService {
      * @ brief Get all information about a specific thread from database.
      */
 
+    // TODO issue with id here, where to find thread???
     public final List<ThreadModel> getThreadInfo(final String slug) {
-        return jdbcTemplate.query(
-                "SELECT * FROM threads WHERE slug = ?",
-                new Object[]{slug},
-                ThreadService::read
-        );
+        StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE ");
+        Integer id;
+
+        try {
+            id  = Integer.valueOf(slug);
+
+        } catch (NumberFormatException ex) {
+            return jdbcTemplate.query(sql.append("LOWER(slug) = LOWER(?)").toString(),
+                    new Object[]{slug}, ThreadService::read);
+        }
+
+        return jdbcTemplate.query(sql.append("id = ?").toString(),
+                new Object[]{id + 1}, ThreadService::read);
     }
 
     /**

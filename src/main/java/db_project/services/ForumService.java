@@ -53,14 +53,16 @@ final public class ForumService {
 
         Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(thread.getCreated(), DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         final String sql = "INSERT INTO threads (author, created, forum, \"message\", " +
-                "slug, title) VALUES(?, ?, ?, ?, ?, ?)";
+                "slug, title) VALUES(?, ?, " +
+                "(SELECT slug FROM forums WHERE LOWER(slug) = LOWER(?)), " +
+                "?, ?, ?)";
 
         jdbcTemplate.update(sql, thread.getAuthor(), timestamp, thread.getForum(),
                 thread.getMessage(), thread.getSlug(), thread.getTitle()
         );
 
         return jdbcTemplate.query(
-                "SELECT * FROM threads WHERE slug = ?",
+                "SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
                 new Object[]{thread.getSlug()},
                 ThreadService::read
         );
@@ -75,6 +77,18 @@ final public class ForumService {
                 "SELECT * FROM forums WHERE LOWER(slug) = LOWER(?)",
                 new Object[]{slug},
                 ForumService::read
+        );
+    }
+
+    /**
+     * @ brief Get information about a specific thread.
+     */
+
+    public final List<ThreadModel> getThreadInfo(final String slug) {
+        return jdbcTemplate.query(
+                "SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
+                new Object[]{slug},
+                ThreadService::read
         );
     }
 

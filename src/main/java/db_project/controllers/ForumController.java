@@ -82,25 +82,35 @@ public final class ForumController {
             thread.setSlug(slug);
         }
 
+        if (thread.getForum() == null) {
+            thread.setForum(slug);
+        }
+
+        List<ThreadModel> threads;
+
         try {
-            List<ThreadModel> threads = service.insertThreadIntoDb(thread);
+            threads = service.insertThreadIntoDb(thread);
 
             if (threads.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getThreadInfo(thread.getSlug()).get(0), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (Objects.equals(thread.getSlug(), thread.getForum())) {
-            thread.setSlug(null);
+        if (Objects.equals(threads.get(0).getSlug(), threads.get(0).getForum())) {
+            threads.get(0).setSlug(null);
         }
 
-        return new ResponseEntity<>(thread, HttpStatus.CREATED);
+        if (thread.getCreated() != null) {
+            threads.get(0).setCreated(thread.getCreated());
+        }
+
+        return new ResponseEntity<>(threads.get(0), HttpStatus.CREATED);
     }
 
     /**
