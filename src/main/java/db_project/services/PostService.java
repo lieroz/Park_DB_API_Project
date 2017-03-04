@@ -8,6 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /**
@@ -27,6 +30,40 @@ public class PostService {
 
     public PostService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    /**
+     * @brief Get post by id from database..
+     */
+
+    public final List<PostModel> getPostFromDb(final Integer id) {
+        final String sql = "SELECT * FROM posts WHERE id = ?";
+        return jdbcTemplate.query(
+                "SELECT * FROM posts WHERE id = ?",
+                new Object[]{id},
+                PostService::read);
+    }
+
+    /**
+     * @brief Update post by id in database..
+     */
+
+    public final List<PostModel> updatePostInDb(final PostModel post, final Integer id) {
+        final StringBuilder sql = new StringBuilder("UPDATE posts SET \"message\" = ?");
+        List<PostModel> posts = getPostFromDb(id);
+
+        if (posts.isEmpty()) {
+            return posts;
+        }
+
+        if (!Objects.equals(post.getMessage(), posts.get(0).getMessage())) {
+            sql.append(", isEdited = TRUE");
+        }
+
+        sql.append(" WHERE id = ?");
+        jdbcTemplate.update(sql.toString(), post.getMessage(), id);
+
+        return getPostFromDb(id);
     }
 
     /**

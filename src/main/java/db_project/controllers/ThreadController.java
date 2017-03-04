@@ -52,6 +52,10 @@ public class ThreadController {
         final List<PostModel> postModelList;
 
         try {
+            if (posts.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
             id = Integer.valueOf(slug);
             postModelList = service.insertPostsIntoDbById(posts, id);
 
@@ -69,6 +73,9 @@ public class ThreadController {
             }
 
             return new ResponseEntity<>(dbPosts, HttpStatus.CREATED);
+
+        } catch (DuplicateKeyException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -132,7 +139,7 @@ public class ThreadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(threads.get(0) ,HttpStatus.OK);
+        return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
     }
 
     /**
@@ -158,7 +165,7 @@ public class ThreadController {
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getThreadInfo(slug).get(0) ,HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getThreadInfo(slug).get(0), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
