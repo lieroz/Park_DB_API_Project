@@ -49,18 +49,32 @@ public class ThreadController {
             @PathVariable(value = "slug") final String slug
     ) {
         final Integer id;
+        final List<PostModel> postModelList;
 
         try {
             id = Integer.valueOf(slug);
+            postModelList = service.insertPostsIntoDbById(posts, id);
 
         } catch (NumberFormatException ex) {
-            return new ResponseEntity<>(service.insertPostsIntoDbBySlug(posts, slug), HttpStatus.CREATED);
+            final List<PostModel> dbPosts;
+
+            try {
+                dbPosts = service.insertPostsIntoDbBySlug(posts, slug);
+
+            } catch (DuplicateKeyException e) {
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
+
+            } catch (DataAccessException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            return new ResponseEntity<>(dbPosts, HttpStatus.CREATED);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(service.insertPostsIntoDbById(posts, id), HttpStatus.CREATED);
+        return new ResponseEntity<>(postModelList, HttpStatus.CREATED);
     }
 
     /**

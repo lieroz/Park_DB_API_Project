@@ -2,6 +2,7 @@ package db_project.services;
 
 import db_project.models.ForumModel;
 import db_project.models.ThreadModel;
+import db_project.models.UserModel;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -137,6 +138,53 @@ final public class ForumService {
                 sql.toString(),
                 args.toArray(new Object[args.size()]),
                 ThreadService::read
+        );
+    }
+
+    /**
+     * @brief Get information about all users in a specific forum.
+     */
+
+    public final List<UserModel> getUsersUnfo(
+            final String slug,
+            final Integer limit,
+            final String since,
+            final Boolean desc
+    ) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE LOWER(users.nickname) IN " +
+                "(SELECT LOWER(posts.author) FROM posts WHERE posts.forum = ? " +
+                "UNION " +
+                "SELECT LOWER(threads.author) FROM threads WHERE threads.forum = ?)");
+        final List<Object> args = new ArrayList<>();
+        args.add(slug);
+        args.add(slug);
+
+        if (since != null) {
+            sql.append(" AND users.id ");
+
+            if (desc == Boolean.TRUE) {
+                sql.append("< ");
+
+            } else {
+                sql.append("> ");
+            }
+
+            sql.append("(SELECT users.id FROM users WHERE users.nickname = ?)");
+            args.add(since);
+        }
+
+        sql.append(" ORDER BY LOWER(users.nickname)"); // COLLATION HERE, but which??? ucs_basic COLLATION
+        if (desc == Boolean.TRUE) {
+            sql.append(" DESC");
+        }
+
+        sql.append(" LIMIT ?");
+        args.add(limit);
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                args.toArray(new Object[args.size()]),
+                UserService::read
         );
     }
 

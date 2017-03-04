@@ -58,7 +58,7 @@ public class ThreadService {
         }
 
         final List<PostModel> dbPosts = jdbcTemplate.query(
-                "SELECT * FROM posts WHERE thread = ?",
+                "SELECT * FROM posts WHERE thread = ? ORDER BY posts.id",
                 new Object[]{id},
                 PostService::read
         );
@@ -95,7 +95,8 @@ public class ThreadService {
         }
 
         final List<PostModel> dbPosts = jdbcTemplate.query(
-                "SELECT * FROM posts WHERE thread = (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))",
+                "SELECT * FROM posts WHERE thread = (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))" +
+                        " ORDER BY posts.id",
                 new Object[]{slug},
                 PostService::read
         );

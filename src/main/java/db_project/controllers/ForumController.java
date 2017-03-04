@@ -2,6 +2,7 @@ package db_project.controllers;
 
 import db_project.models.ForumModel;
 import db_project.models.ThreadModel;
+import db_project.models.UserModel;
 import db_project.services.ForumService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -162,6 +163,30 @@ public final class ForumController {
         final List<ThreadModel> threads = service.getThreadsInfo(slug, limit, since, desc);
 
         return new ResponseEntity<>(threads, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{slug}/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<List<UserModel>> viewUsers(
+            @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
+            @RequestParam(value = "since", required = false) final String since,
+            @RequestParam(value = "desc", required = false) final Boolean desc,
+            @PathVariable("slug") final String slug
+    ) {
+        List<UserModel> users;
+
+        try {
+            users = service.getUsersUnfo(slug, limit, since, desc);
+            final List<ForumModel> forums = service.getForumInfo(slug);
+
+            if (forums.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     // TODO GET /forum/{slug}/users
