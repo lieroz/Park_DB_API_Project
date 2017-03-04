@@ -33,7 +33,7 @@ public class PostService {
     }
 
     /**
-     * @brief Get post by id from database..
+     * @brief Get post by id from database.
      */
 
     public final List<PostModel> getPostFromDb(final Integer id) {
@@ -45,7 +45,7 @@ public class PostService {
     }
 
     /**
-     * @brief Update post by id in database..
+     * @brief Update post by id in database.
      */
 
     public final List<PostModel> updatePostInDb(final PostModel post, final Integer id) {

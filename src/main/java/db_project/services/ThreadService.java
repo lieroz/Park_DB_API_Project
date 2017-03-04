@@ -229,6 +229,14 @@ public class ThreadService {
                 new Object[]{id}, ThreadService::read);
     }
 
+    public final List<ThreadModel> getThreadInfoById(final Integer id) {
+        return jdbcTemplate.query(
+                "SELECT * FROM threads WHERE id = ?",
+                new Object[]{id},
+                ThreadService::read
+        );
+    }
+
     /**
      * @brief Serialize database row into ThreadModel object.
      */

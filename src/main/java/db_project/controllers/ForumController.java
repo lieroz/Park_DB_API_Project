@@ -175,7 +175,7 @@ public final class ForumController {
         List<UserModel> users;
 
         try {
-            users = service.getUsersUnfo(slug, limit, since, desc);
+            users = service.getUsersInfo(slug, limit, since, desc);
             final List<ForumModel> forums = service.getForumInfo(slug);
 
             if (forums.isEmpty()) {

@@ -145,7 +145,7 @@ final public class ForumService {
      * @brief Get information about all users in a specific forum.
      */
 
-    public final List<UserModel> getUsersUnfo(
+    public final List<UserModel> getUsersInfo(
             final String slug,
             final Integer limit,
             final String since,
