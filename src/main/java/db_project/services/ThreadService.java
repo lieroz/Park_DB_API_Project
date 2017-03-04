@@ -153,16 +153,14 @@ public class ThreadService {
 
         try {
             id = Integer.valueOf(slug);
+            sql.append(" WHERE id = ?");
+            args.add(id);
 
         } catch (NumberFormatException ex) {
             sql.append(" WHERE LOWER(slug) = LOWER(?)");
             args.add(slug);
-            jdbcTemplate.update(sql.toString(), args.toArray());
-            return;
         }
 
-        sql.append(" WHERE id = ?");
-        args.add(id);
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
