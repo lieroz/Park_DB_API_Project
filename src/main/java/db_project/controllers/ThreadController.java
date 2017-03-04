@@ -89,6 +89,39 @@ public class ThreadController {
     }
 
     /**
+     * @brief Update a specific thread.
+     * @brief {slug} stands for thread-slug.
+     */
+
+    @RequestMapping(value = "/details",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<ThreadModel> updateThread(
+            @RequestBody final ThreadModel thread,
+            @PathVariable(value = "slug") final String slug
+    ) {
+        final List<ThreadModel> threads;
+
+        try {
+            service.updateThreadInfoFromDb(thread, slug);
+            threads = service.getThreadInfo(slug);
+
+            if (threads.isEmpty()) {
+                throw new EmptyResultDataAccessException(0);
+            }
+
+        } catch (DuplicateKeyException ex) {
+            return new ResponseEntity<>(service.getThreadInfo(slug).get(0), HttpStatus.CONFLICT);
+
+        } catch (DataAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(threads.get(0) ,HttpStatus.OK);
+    }
+
+    /**
      * @brief Vote for a specific thread.
      * @brief {slug} stands for thread-slug.
      */
@@ -118,5 +151,22 @@ public class ThreadController {
         }
 
         return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<List<PostModel>> viewThreads(
+            @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
+            @RequestParam(value = "marker", required = false) final String marker,
+            @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,
+            @RequestParam(value = "desc", required = false) final Boolean desc,
+            @PathVariable("slug") final String slug
+    ) {
+        /**
+         * Here goe code with sorting posts
+         * It will be done later =)
+         * Test Nr 32
+         */
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

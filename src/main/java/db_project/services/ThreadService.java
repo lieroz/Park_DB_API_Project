@@ -63,7 +63,10 @@ public class ThreadService {
                 PostService::read
         );
 
-        return dbPosts.subList(dbPosts.size() - posts.size(), dbPosts.size());
+        Integer beginIndex = dbPosts.size() - posts.size();
+        Integer endIndex = dbPosts.size();
+
+        return dbPosts.subList(beginIndex, endIndex);
     }
 
     /**
@@ -97,7 +100,10 @@ public class ThreadService {
                 PostService::read
         );
 
-        return dbPosts.subList(dbPosts.size() - posts.size(), dbPosts.size());
+        Integer beginIndex = dbPosts.size() - posts.size();
+        Integer endIndex = dbPosts.size();
+
+        return dbPosts.subList(beginIndex, endIndex);
     }
 
     /**
@@ -118,6 +124,46 @@ public class ThreadService {
 
         return jdbcTemplate.query(sql.append("id = ?").toString(),
                 new Object[]{id}, ThreadService::read);
+    }
+
+    /**
+     * @brief Update information about a specific thread from database.
+     */
+
+    public final void updateThreadInfoFromDb(final ThreadModel thread, final String slug) {
+        final StringBuilder sql = new StringBuilder("UPDATE threads SET");
+        final List<Object> args = new ArrayList<>();
+
+        if (thread.getMessage() != null && !thread.getMessage().isEmpty()) {
+            sql.append(" message = ?,");
+            args.add(thread.getMessage());
+        }
+
+        if (thread.getTitle() != null && !thread.getTitle().isEmpty()) {
+            sql.append(" title = ?,");
+            args.add(thread.getTitle());
+        }
+
+        if (args.isEmpty()) {
+            return;
+        }
+
+        sql.delete(sql.length() - 1, sql.length());
+        final Integer id;
+
+        try {
+            id = Integer.valueOf(slug);
+
+        } catch (NumberFormatException ex) {
+            sql.append(" WHERE LOWER(slug) = LOWER(?)");
+            args.add(slug);
+            jdbcTemplate.update(sql.toString(), args.toArray());
+            return;
+        }
+
+        sql.append(" WHERE id = ?");
+        args.add(id);
+        jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
     /**
