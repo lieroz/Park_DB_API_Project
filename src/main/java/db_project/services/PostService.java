@@ -1,6 +1,6 @@
 package db_project.services;
 
-import db_project.models.PostModel;
+import db_project.models.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +42,57 @@ public class PostService {
                 "SELECT * FROM posts WHERE id = ?",
                 new Object[]{id},
                 PostService::read);
+    }
+
+    /**
+     * @brief Get detailed post from database.
+     */
+
+    public final PostDetailsModel getDetailedPostFromDb(final PostModel post, String[] related) {
+        UserModel user = null;
+        ForumModel forum = null;
+        ThreadModel thread = null;
+
+        if (related != null) {
+
+            for (String relation : related) {
+
+                if (Objects.equals(relation, "user")) {
+                    UserService userService = new UserService(jdbcTemplate);
+                    List<UserModel> users = userService.getUserFromDb(new UserModel(null, null, null, post.getAuthor()));
+
+                    if (!users.isEmpty()) {
+                        user = users.get(0);
+                    }
+                }
+
+                if (relation.equals("forum")) {
+                    ForumService forumService = new ForumService(jdbcTemplate);
+                    List<ForumModel> forums = forumService.getForumInfo(post.getForum());
+
+                    if (!forums.isEmpty()) {
+                        forum = forums.get(0);
+                    }
+
+                    forum.setThreads(jdbcTemplate.queryForObject(
+                            "SELECT COUNT(*) FROM threads WHERE LOWER(forum) = LOWER(?)",
+                            Integer.class,
+                            forum.getSlug()
+                    ));
+                }
+
+                if (relation.equals("thread")) {
+                    ThreadService forumService = new ThreadService(jdbcTemplate);
+                    List<ThreadModel> threads = forumService.getThreadInfoById(post.getThread());
+
+                    if (!threads.isEmpty()) {
+                        thread = threads.get(0);
+                    }
+                }
+            }
+        }
+
+        return new PostDetailsModel(user, forum, post, thread);
     }
 
     /**

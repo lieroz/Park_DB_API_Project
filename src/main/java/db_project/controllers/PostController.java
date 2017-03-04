@@ -4,12 +4,7 @@ package db_project.controllers;
  * Created by lieroz on 4.03.17.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import db_project.models.ForumModel;
-import db_project.models.PostModel;
-import db_project.models.ThreadModel;
-import db_project.models.UserModel;
+import db_project.models.*;
 import db_project.services.ForumService;
 import db_project.services.PostService;
 import db_project.services.ThreadService;
@@ -52,7 +47,7 @@ public class PostController {
      */
 
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<PostDetails> viewForum(
+    public final ResponseEntity<PostDetailsModel> viewForum(
             @RequestParam(value = "related", required = false) String[] related,
             @PathVariable("id") final Integer id
     ) {
@@ -70,50 +65,7 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        UserModel user = null;
-        ForumModel forum = null;
-        ThreadModel thread = null;
-
-        if (related != null) {
-
-            for (String relation : related) {
-
-                if (Objects.equals(relation, "user")) {
-                    UserService userService = new UserService(jdbcTemplate);
-                    List<UserModel> users = userService.getUserFromDb(new UserModel(null, null, null, posts.get(0).getAuthor()));
-
-                    if (!users.isEmpty()) {
-                        user = users.get(0);
-                    }
-                }
-
-                if (relation.equals("forum")) {
-                    ForumService forumService = new ForumService(jdbcTemplate);
-                    List<ForumModel> forums = forumService.getForumInfo(posts.get(0).getForum());
-
-                    if (!forums.isEmpty()) {
-                        forum = forums.get(0);
-                    }
-
-                    forum.setThreads(jdbcTemplate.queryForObject(
-                            "SELECT COUNT(*) FROM threads WHERE LOWER(forum) = LOWER(?)",
-                            Integer.class,
-                            forum.getSlug()
-                    ));
-                }
-
-                if (relation.equals("thread")) {
-                    ThreadService forumService = new ThreadService(jdbcTemplate);
-                    List<ThreadModel> threads = forumService.getThreadInfoById(posts.get(0).getThread());
-
-                    if (!threads.isEmpty()) {
-                        thread = threads.get(0);
-                    }
-                }
-            }
-        }
-
-        return new ResponseEntity<>(new PostDetails(user, forum, posts.get(0), thread), HttpStatus.OK);
+        return new ResponseEntity<>(service.getDetailedPostFromDb(posts.get(0), related), HttpStatus.OK);
     }
 
     /**
@@ -148,57 +100,5 @@ public class PostController {
         }
 
         return new ResponseEntity<>(posts.get(0), HttpStatus.OK);
-    }
-
-    public class PostDetails {
-        private UserModel author;
-        private ForumModel forum;
-        private PostModel post;
-        private ThreadModel thread;
-
-        @JsonCreator
-        public PostDetails(
-                @JsonProperty("author") final UserModel author,
-                @JsonProperty("forum") final ForumModel forum,
-                @JsonProperty("post") final PostModel post,
-                @JsonProperty("thread") final ThreadModel thread
-        ) {
-            this.author = author;
-            this.forum = forum;
-            this.post = post;
-            this.thread = thread;
-        }
-
-        public final UserModel getAuthor() {
-            return this.author;
-        }
-
-        public void setAuthor(final UserModel author) {
-            this.author = author;
-        }
-
-        public final ForumModel getForum() {
-            return this.forum;
-        }
-
-        public void setForum(ForumModel forum) {
-            this.forum = forum;
-        }
-
-        public final PostModel getPost() {
-            return this.post;
-        }
-
-        public void setPost(PostModel post) {
-            this.post = post;
-        }
-
-        public final ThreadModel getThread() {
-            return this.thread;
-        }
-
-        public void setThread(ThreadModel thread) {
-            this.thread = thread;
-        }
     }
 }
