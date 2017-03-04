@@ -1,0 +1,44 @@
+CREATE EXTENSION IF NOT EXISTS CITEXT;
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL,
+  about TEXT,
+  email CITEXT UNIQUE,
+  fullname CITEXT,
+  nickname CITEXT PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS forums (
+  posts BIGINT DEFAULT NULL,
+  slug CITEXT PRIMARY KEY NOT NULL,
+  threads BIGINT DEFAULT NULL,
+  title CITEXT NOT NULL,
+  "user" CITEXT NOT NULL REFERENCES users (nickname)
+);
+
+CREATE TABLE IF NOT EXISTS threads (
+  author CITEXT NOT NULL REFERENCES users (nickname),
+  created TIMESTAMP DEFAULT NOW(),
+  forum CITEXT NOT NULL REFERENCES forums (slug),
+  id SERIAL PRIMARY KEY,
+  message CITEXT,
+  slug CITEXT UNIQUE,
+  title CITEXT NOT NULL,
+  votes BIGINT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS uservotes (
+  nickname CITEXT NOT NULL REFERENCES users (nickname),
+  voice INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+  author CITEXT NOT NULL REFERENCES users (nickname),
+  created TIMESTAMP DEFAULT NOW(),
+  forum CITEXT NOT NULL REFERENCES forums (slug),
+  id SERIAL PRIMARY KEY,
+  isEdited BOOLEAN DEFAULT FALSE,
+  message CITEXT,
+  parent INTEGER DEFAULT 0,
+  thread INTEGER REFERENCES threads (id)
+);
