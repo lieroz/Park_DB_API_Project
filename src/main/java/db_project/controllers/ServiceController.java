@@ -1,7 +1,5 @@
 package db_project.controllers;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import db_project.models.ServiceModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Created by lieroz on 4.03.17.
  */
+
 @RestController
 @RequestMapping("/api/service")
 class ServiceController {
@@ -32,5 +31,16 @@ class ServiceController {
         final Integer usersCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Integer.class);
 
         return new ResponseEntity<>(new ServiceModel(forumsCount, postsCount, threadsCount, usersCount), HttpStatus.OK);
+    }
+
+    @RequestMapping("/clear")
+    public final ResponseEntity<Object> clearService() {
+        jdbcTemplate.execute("DELETE FROM uservotes");
+        jdbcTemplate.execute("DELETE FROM posts");
+        jdbcTemplate.execute("DELETE FROM threads");
+        jdbcTemplate.execute("DELETE FROM forums");
+        jdbcTemplate.execute("DELETE FROM users");
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
