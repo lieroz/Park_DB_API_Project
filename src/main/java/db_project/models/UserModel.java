@@ -7,11 +7,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by lieroz on 23.02.17.
  */
 
+/**
+ * @brief Model representing User in database.
+ */
+
 public class UserModel {
+    /**
+     * @brief Fields which represent info about user.
+     */
+
     private String about;
     private String email;
     private String fullname;
     private String nickname;
+
+    /**
+     * @brief Constructor that serializes object into JSON.
+     */
 
     @JsonCreator
     public UserModel(
@@ -26,12 +38,21 @@ public class UserModel {
         this.nickname = nickname;
     }
 
+    /**
+     * @brief Copy Constructor.
+     */
+
     public UserModel(final UserModel other) {
         this.about = other.getAbout();
         this.email = other.getEmail();
         this.fullname = other.getFullname();
         this.nickname = other.getNickname();
     }
+
+    /**
+     * @brief Getters and setters.
+     * @brief Getters are need for object serialization into JSON.
+     */
 
     public final String getAbout() {
         return this.about;

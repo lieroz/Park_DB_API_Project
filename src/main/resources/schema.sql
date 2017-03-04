@@ -1,6 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS CITEXT;
 
 CREATE TABLE IF NOT EXISTS users (
+  id SERIAL,
   about TEXT,
   email CITEXT UNIQUE,
   fullname CITEXT,
@@ -19,20 +20,25 @@ CREATE TABLE IF NOT EXISTS threads (
   author CITEXT NOT NULL REFERENCES users (nickname),
   created TIMESTAMP DEFAULT NOW(),
   forum CITEXT NOT NULL REFERENCES forums (slug),
-  id SERIAL,
+  id SERIAL PRIMARY KEY,
   message CITEXT,
-  slug CITEXT PRIMARY KEY,
+  slug CITEXT UNIQUE,
   title CITEXT NOT NULL,
   votes BIGINT DEFAULT 0
 );
---
--- CREATE TABLE IF NOT EXISTS Posts (
---   author VARCHAR(100) NOT NULL REFERENCES Users(nickname),
---   created VARCHAR(100) DEFAULT 0,
---   forum VARCHAR(100) NOT NULL REFERENCES Forums(slug),
---   id SERIAL,
---   isEdited BOOLEAN DEFAULT TRUE,
---   message VARCHAR(100),
---   parent BIGINT DEFAULT 0,
---   thread VARCHAR(100) REFERENCES Threads(slug)
--- );
+
+CREATE TABLE IF NOT EXISTS uservotes (
+  nickname CITEXT NOT NULL REFERENCES users (nickname),
+  voice INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+  author CITEXT NOT NULL REFERENCES users (nickname),
+  created TIMESTAMP DEFAULT NOW(),
+  forum CITEXT NOT NULL REFERENCES forums (slug),
+  id SERIAL PRIMARY KEY,
+  isEdited BOOLEAN DEFAULT FALSE,
+  message CITEXT,
+  parent INTEGER DEFAULT 0,
+  thread INTEGER REFERENCES threads (id)
+);

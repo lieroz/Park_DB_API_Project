@@ -13,13 +13,24 @@ import java.util.List;
  * Created by lieroz on 23.02.17.
  */
 
+/**
+ * @brief Wrapper on JdbcTemplate for more convenient usage.
+ */
+
 @Service
 public final class UserService {
+    /**
+     * @brief Class used for communication with database.
+     */
     private final JdbcTemplate jdbcTemplate;
 
     public UserService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
+
+    /**
+     * @brief Add new user to database.
+     */
 
     public final void insertUserIntoDb(final UserModel user) {
         final String sql = "INSERT INTO users (about, email, fullname, nickname) " +
@@ -28,6 +39,10 @@ public final class UserService {
                 user.getNickname());
     }
 
+    /**
+     * @brief Get information about user.
+     */
+
     public final List<UserModel> getUserFromDb(final UserModel user) {
         return jdbcTemplate.query(
                 "SELECT * FROM users WHERE LOWER(nickname) = LOWER(?)" +
@@ -35,6 +50,10 @@ public final class UserService {
                 new Object[]{user.getNickname(), user.getEmail()},
                 UserService::read);
     }
+
+    /**
+     * @brief Update current information about a specific user.
+     */
 
     public final void updateUserInfoFromDb(final UserModel user) {
         final StringBuilder sql = new StringBuilder("UPDATE users SET");
@@ -64,6 +83,10 @@ public final class UserService {
         args.add(user.getNickname());
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
+
+    /**
+     * @brief Serialize database row into UserModel object.
+     */
 
     public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
         return new UserModel(
