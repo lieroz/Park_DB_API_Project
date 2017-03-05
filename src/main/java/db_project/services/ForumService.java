@@ -163,16 +163,16 @@ final public class ForumService {
             sql.append(" AND LOWER(users.nickname) ");
 
             if (desc == Boolean.TRUE) {
-                sql.append("< LOWER(?) ");
+                sql.append("< LOWER(?)");
 
             } else {
-                sql.append("> LOWER(?) ");
+                sql.append("> LOWER(?)");
             }
 
             args.add(since);
         }
 
-        sql.append(" ORDER BY LOWER(users.nickname COLLATE UCS_BASIC)");
+        sql.append(" ORDER BY LOWER(users.nickname) COLLATE ucs_basic");
 
         if (desc == Boolean.TRUE) {
             sql.append(" DESC");

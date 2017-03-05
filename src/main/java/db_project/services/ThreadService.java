@@ -64,6 +64,10 @@ public class ThreadService {
                 post.setCreated(LocalDateTime.now().toString());
             }
 
+            if (post.getParent() == null) {
+                post.setParent(0);
+            }
+
             Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
 
             if (!post.getCreated().endsWith("Z")) {

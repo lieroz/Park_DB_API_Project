@@ -115,7 +115,6 @@ public final class ForumController {
      * @brief {slug} stands for forum-slug here.
      */
 
-    // TODO GET INFO ABOUT POSTS AND THREADS
     @RequestMapping(value = "/{slug}/details", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ForumModel> viewForum(
             @PathVariable("slug") final String slug
@@ -141,7 +140,6 @@ public final class ForumController {
      * @brief {slug} stands for forum-slug here.
      */
 
-    // TODO GET INFO ABOUT VOTES
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
@@ -188,6 +186,4 @@ public final class ForumController {
 
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
-
-    // TODO GET /forum/{slug}/users
 }

@@ -46,7 +46,7 @@ public final class UserService {
     public final List<UserModel> getUserFromDb(final UserModel user) {
         return jdbcTemplate.query(
                 "SELECT * FROM users WHERE LOWER(nickname) = LOWER(?)" +
-                        "OR LOWER(email) = LOWER(?)",
+                        " OR LOWER(email) = LOWER(?)",
                 new Object[]{user.getNickname(), user.getEmail()},
                 UserService::read);
     }

@@ -7,11 +7,10 @@ DROP TABLE IF EXISTS users;
 CREATE EXTENSION IF NOT EXISTS CITEXT;
 
 CREATE TABLE IF NOT EXISTS users (
-  id SERIAL,
   about TEXT,
   email CITEXT UNIQUE,
   fullname TEXT,
-  nickname CITEXT PRIMARY KEY
+  nickname CITEXT COLLATE ucs_basic PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS forums (
@@ -19,12 +18,12 @@ CREATE TABLE IF NOT EXISTS forums (
   slug CITEXT PRIMARY KEY NOT NULL,
   threads BIGINT DEFAULT NULL,
   title TEXT NOT NULL,
-  "user" CITEXT NOT NULL REFERENCES users (nickname)
+  "user" CITEXT COLLATE ucs_basic NOT NULL REFERENCES users (nickname)
 );
 
 CREATE TABLE IF NOT EXISTS threads (
-  author CITEXT NOT NULL REFERENCES users (nickname),
-  created TIMESTAMP DEFAULT NOW(),
+  author CITEXT COLLATE ucs_basic NOT NULL REFERENCES users (nickname),
+  created TIMESTAMP,
   forum CITEXT NOT NULL REFERENCES forums (slug),
   id SERIAL PRIMARY KEY,
   message TEXT,
@@ -34,17 +33,17 @@ CREATE TABLE IF NOT EXISTS threads (
 );
 
 CREATE TABLE IF NOT EXISTS uservotes (
-  nickname CITEXT NOT NULL REFERENCES users (nickname),
+  nickname CITEXT COLLATE ucs_basic NOT NULL REFERENCES users (nickname),
   voice INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS posts (
-  author CITEXT NOT NULL REFERENCES users (nickname),
-  created TIMESTAMP DEFAULT NOW(),
+  author CITEXT COLLATE ucs_basic NOT NULL REFERENCES users (nickname),
+  created TIMESTAMP,
   forum CITEXT NOT NULL REFERENCES forums (slug),
   id SERIAL PRIMARY KEY,
   isEdited BOOLEAN DEFAULT FALSE,
   message TEXT,
-  parent INTEGER DEFAULT 0,
+  parent INTEGER,
   thread INTEGER REFERENCES threads (id)
 );
