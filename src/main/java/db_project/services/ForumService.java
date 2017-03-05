@@ -108,7 +108,7 @@ final public class ForumService {
             final String since,
             final Boolean desc
     ) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE forum = ?");
+        StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE LOWER(forum) = LOWER(?)");
         final List<Object> args = new ArrayList<>();
         args.add(slug);
 
@@ -152,27 +152,27 @@ final public class ForumService {
             final Boolean desc
     ) {
         StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE LOWER(users.nickname) IN " +
-                "(SELECT LOWER(posts.author) FROM posts WHERE posts.forum = ? " +
+                "(SELECT LOWER(posts.author) FROM posts WHERE LOWER(posts.forum) = LOWER(?) " +
                 "UNION " +
-                "SELECT LOWER(threads.author) FROM threads WHERE threads.forum = ?)");
+                "SELECT LOWER(threads.author) FROM threads WHERE LOWER(threads.forum) = LOWER(?))");
         final List<Object> args = new ArrayList<>();
         args.add(slug);
         args.add(slug);
 
         if (since != null) {
-            sql.append(" AND users.nickname ");
+            sql.append(" AND LOWER(users.nickname) ");
 
             if (desc == Boolean.TRUE) {
-                sql.append("< ? ");
+                sql.append("< LOWER(?) ");
 
             } else {
-                sql.append("> ? ");
+                sql.append("> LOWER(?) ");
             }
 
             args.add(since);
         }
 
-        sql.append(" ORDER BY LOWER(users.nickname) COLLATE UCS_BASIC");
+        sql.append(" ORDER BY LOWER(users.nickname COLLATE UCS_BASIC)");
 
         if (desc == Boolean.TRUE) {
             sql.append(" DESC");
