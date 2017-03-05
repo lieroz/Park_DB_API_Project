@@ -1,8 +1,11 @@
 package db_project.controllers;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import db_project.models.PostModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
+import db_project.services.PostService;
 import db_project.services.ThreadService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -48,40 +51,24 @@ public class ThreadController {
             @RequestBody final List<PostModel> posts,
             @PathVariable(value = "slug") final String slug
     ) {
-        final Integer id;
-        final List<PostModel> postModelList;
+        final List<PostModel> dbPosts;
 
         try {
+
             if (posts.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
-            id = Integer.valueOf(slug);
-            postModelList = service.insertPostsIntoDbById(posts, id);
+            dbPosts = service.insertPostsIntoDb(posts, slug);
 
-        } catch (NumberFormatException ex) {
-            final List<PostModel> dbPosts;
-
-            try {
-                dbPosts = service.insertPostsIntoDbBySlug(posts, slug);
-
-            } catch (DuplicateKeyException e) {
-                return new ResponseEntity<>(HttpStatus.CONFLICT);
-
-            } catch (DataAccessException e) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
-            return new ResponseEntity<>(dbPosts, HttpStatus.CREATED);
-
-        } catch (DuplicateKeyException e) {
+        } catch (DuplicateKeyException ex) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(postModelList, HttpStatus.CREATED);
+        return new ResponseEntity<>(dbPosts, HttpStatus.CREATED);
     }
 
     /**
@@ -175,19 +162,45 @@ public class ThreadController {
     }
 
     @RequestMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<PostModel>> viewThreads(
+    public final ResponseEntity<Test> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "marker", required = false) final String marker,
             @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,
             @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
-        /**
-         * Here goe code with sorting posts
-         * It will be done later =)
-         * Test Nr 32
-         */
+        final StringBuilder sql = new StringBuilder("SELECT * FROM posts WHERE posts.thread = " +
+                "(SELECT threads.id FROM threads WHERE threads.slug = ?) ORDER BY posts.created");
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        if (desc == Boolean.TRUE) {
+            sql.append(" DESC");
+        }
+
+        sql.append(" LIMIT ?");
+
+        final List<PostModel> posts = jdbcTemplate.query(
+                sql.toString(),
+                new Object[]{slug, limit},
+                PostService::read
+        );
+
+        return new ResponseEntity<>(new Test(posts), HttpStatus.OK);
+    }
+
+    public class Test {
+        private List<PostModel> posts;
+
+        @JsonCreator
+        public Test(@JsonProperty("posts") final List<PostModel> posts) {
+            this.posts = posts;
+        }
+
+        public final List<PostModel> getPosts() {
+            return this.posts;
+        }
+
+        public void setPosts(final List<PostModel> posts) {
+            this.posts = posts;
+        }
     }
 }

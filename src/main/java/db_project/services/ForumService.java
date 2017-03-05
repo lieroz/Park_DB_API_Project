@@ -169,7 +169,7 @@ final public class ForumService {
                 sql.append("> ");
             }
 
-            sql.append("(SELECT users.id FROM users WHERE users.nickname = ?)");
+            sql.append("(SELECT users.id FROM users WHERE LOWER(users.nickname) = LOWER(?))");
             args.add(since);
         }
 

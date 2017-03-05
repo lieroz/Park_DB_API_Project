@@ -34,10 +34,30 @@ public class ThreadService {
     }
 
     /**
-     * @brief Insert multiple posts into database by ID.
+     * @brief Insert multiple posts into database by slug or id.
      */
 
-    public final List<PostModel> insertPostsIntoDbById(final List<PostModel> posts, final Integer id) {
+    public final List<PostModel> insertPostsIntoDb(final List<PostModel> posts, final String slug) {
+        Integer id = null;
+        Boolean isNumber = Boolean.FALSE;
+        final StringBuilder insertRequest = new StringBuilder(
+                "INSERT INTO posts (author, created, forum, \"message\", thread, parent) ");
+        final StringBuilder getRequest = new StringBuilder("SELECT * FROM posts WHERE thread =");
+
+        try {
+            id = Integer.valueOf(slug);
+            isNumber = Boolean.TRUE;
+            insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?, ?)");
+            getRequest.append(" ?");
+
+        } catch (NumberFormatException ex) {
+            insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
+                    "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)), ?)");
+            getRequest.append(" (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))");
+        }
+
+        getRequest.append(" ORDER BY posts.id");
+
         for (PostModel post : posts) {
 
             if (post.getCreated() == null) {
@@ -50,59 +70,15 @@ public class ThreadService {
                 timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
             }
 
-            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread, parent) " +
-                    "VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?, ?)";
+            jdbcTemplate.update(insertRequest.toString(), post.getAuthor(), timestamp, isNumber ? id : slug,
+                    post.getMessage(), isNumber ? id : slug, post.getParent());
 
-            jdbcTemplate.update(sql, post.getAuthor(), timestamp, id,
-                    post.getMessage(), id, post.getParent());
         }
 
-        final List<PostModel> dbPosts = jdbcTemplate.query(
-                "SELECT * FROM posts WHERE thread = ? ORDER BY posts.id",
-                new Object[]{id},
-                PostService::read
-        );
-
-        Integer beginIndex = dbPosts.size() - posts.size();
-        Integer endIndex = dbPosts.size();
-
-        return dbPosts.subList(beginIndex, endIndex);
-    }
-
-    /**
-     * @brief Insert multiple posts into database by slug.
-     */
-
-    public final List<PostModel> insertPostsIntoDbBySlug(final List<PostModel> posts, final String slug) {
-        for (PostModel post : posts) {
-
-            if (post.getCreated() == null) {
-                post.setCreated(LocalDateTime.now().toString());
-            }
-
-            Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
-
-            if (!post.getCreated().endsWith("Z")) {
-                timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
-            }
-
-            final String sql = "INSERT INTO posts (author, created, forum, \"message\", thread, parent) " +
-                    "VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
-                    "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)), ?)";
-
-            jdbcTemplate.update(sql, post.getAuthor(), timestamp, slug,
-                    post.getMessage(), slug, post.getParent());
-        }
-
-        final List<PostModel> dbPosts = jdbcTemplate.query(
-                "SELECT * FROM posts WHERE thread = (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))" +
-                        " ORDER BY posts.id",
-                new Object[]{slug},
-                PostService::read
-        );
-
-        Integer beginIndex = dbPosts.size() - posts.size();
-        Integer endIndex = dbPosts.size();
+        final List<PostModel> dbPosts = jdbcTemplate.query(getRequest.toString(),
+                isNumber ? new Object[]{id} : new Object[]{slug}, PostService::read);
+        final Integer beginIndex = dbPosts.size() - posts.size();
+        final Integer endIndex = dbPosts.size();
 
         return dbPosts.subList(beginIndex, endIndex);
     }
@@ -228,6 +204,11 @@ public class ThreadService {
         return jdbcTemplate.query("SELECT * FROM threads WHERE id = ?",
                 new Object[]{id}, ThreadService::read);
     }
+
+
+    /**
+     * @brief Get information about thread by id.
+     */
 
     public final List<ThreadModel> getThreadInfoById(final Integer id) {
         return jdbcTemplate.query(
