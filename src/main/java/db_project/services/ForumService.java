@@ -160,20 +160,20 @@ final public class ForumService {
         args.add(slug);
 
         if (since != null) {
-            sql.append(" AND users.id ");
+            sql.append(" AND users.nickname ");
 
             if (desc == Boolean.TRUE) {
-                sql.append("< ");
+                sql.append("< ? ");
 
             } else {
-                sql.append("> ");
+                sql.append("> ? ");
             }
 
-            sql.append("(SELECT users.id FROM users WHERE LOWER(users.nickname) = LOWER(?))");
             args.add(since);
         }
 
-        sql.append(" ORDER BY LOWER(users.nickname)"); // COLLATION HERE, but which??? ucs_basic COLLATION
+        sql.append(" ORDER BY LOWER(users.nickname) COLLATE UCS_BASIC");
+
         if (desc == Boolean.TRUE) {
             sql.append(" DESC");
         }
