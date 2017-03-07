@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS forums (
-  posts BIGINT DEFAULT NULL,
+  posts INTEGER DEFAULT 0,
   slug CITEXT PRIMARY KEY NOT NULL,
-  threads BIGINT DEFAULT NULL,
+  threads INTEGER DEFAULT 0,
   title TEXT NOT NULL,
   "user" CITEXT COLLATE ucs_basic NOT NULL REFERENCES users (nickname)
 );
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS threads (
   message TEXT,
   slug CITEXT UNIQUE,
   title TEXT NOT NULL,
-  votes BIGINT DEFAULT 0
+  votes INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS uservotes (
@@ -44,6 +44,6 @@ CREATE TABLE IF NOT EXISTS posts (
   id SERIAL PRIMARY KEY,
   isEdited BOOLEAN DEFAULT FALSE,
   message TEXT,
-  parent INTEGER,
+  parent INTEGER DEFAULT 0,
   thread INTEGER REFERENCES threads (id)
 );

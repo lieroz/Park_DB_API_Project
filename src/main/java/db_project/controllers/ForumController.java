@@ -158,9 +158,7 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        final List<ThreadModel> threads = service.getThreadsInfo(slug, limit, since, desc);
-
-        return new ResponseEntity<>(threads, HttpStatus.OK);
+        return new ResponseEntity<>(service.getThreadsInfo(slug, limit, since, desc), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{slug}/users", produces = MediaType.APPLICATION_JSON_VALUE)

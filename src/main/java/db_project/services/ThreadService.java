@@ -43,20 +43,26 @@ public class ThreadService {
         final StringBuilder insertRequest = new StringBuilder(
                 "INSERT INTO posts (author, created, forum, \"message\", thread, parent) ");
         final StringBuilder getRequest = new StringBuilder("SELECT * FROM posts WHERE thread =");
+        final StringBuilder updateRequest = new StringBuilder("UPDATE forums SET posts = posts + ?" +
+                " WHERE forums.slug = (SELECT threads.forum FROM threads WHERE");
 
         try {
             id = Integer.valueOf(slug);
             isNumber = Boolean.TRUE;
             insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?, ?)");
             getRequest.append(" ?");
+            updateRequest.append(" threads.id = ?)");
 
         } catch (NumberFormatException ex) {
             insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
                     "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)), ?)");
             getRequest.append(" (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))");
+            updateRequest.append(" threads.slug = ?)");
         }
 
         getRequest.append(" ORDER BY posts.id");
+
+        jdbcTemplate.update(updateRequest.toString(), posts.size(), isNumber ? id : slug);
 
         for (PostModel post : posts) {
 
@@ -76,7 +82,6 @@ public class ThreadService {
 
             jdbcTemplate.update(insertRequest.toString(), post.getAuthor(), timestamp, isNumber ? id : slug,
                     post.getMessage(), isNumber ? id : slug, post.getParent());
-
         }
 
         final List<PostModel> dbPosts = jdbcTemplate.query(getRequest.toString(),

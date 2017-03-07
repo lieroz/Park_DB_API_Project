@@ -38,9 +38,9 @@ final public class ForumService {
      */
 
     public final void insertForumIntoDb(final ForumModel forum) {
-        final String sql = "INSERT INTO forums (slug, title, \"user\") VALUES(?, ?, " +
-                "(SELECT nickname FROM users WHERE LOWER(nickname) = LOWER(?)))";
-        jdbcTemplate.update(sql, forum.getSlug(), forum.getTitle(), forum.getUser());
+        jdbcTemplate.update("INSERT INTO forums (slug, title, \"user\") VALUES(?, ?, " +
+                "(SELECT nickname FROM users WHERE LOWER(nickname) = LOWER(?)))",
+                forum.getSlug(), forum.getTitle(), forum.getUser());
     }
 
     /**
@@ -66,6 +66,9 @@ final public class ForumService {
         jdbcTemplate.update(sql, thread.getAuthor(), timestamp, thread.getForum(),
                 thread.getMessage(), thread.getSlug(), thread.getTitle()
         );
+
+        jdbcTemplate.update("UPDATE forums SET threads = threads + 1 WHERE LOWER(slug) = LOWER(?)",
+                thread.getForum());
 
         return jdbcTemplate.query(
                 "SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
