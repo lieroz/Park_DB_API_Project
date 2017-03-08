@@ -1,12 +1,9 @@
 package db_project.controllers;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import db_project.models.PostModel;
 import db_project.models.PostsMarkerModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
-import db_project.services.PostService;
 import db_project.services.ThreadService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -163,6 +160,11 @@ public class ThreadController {
 
         return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
     }
+
+    /**
+     * @brief Show posts sorted.
+     * @brief {slug} stands for thread-slug.
+     */
 
     private static Integer markerValue = 0;
 

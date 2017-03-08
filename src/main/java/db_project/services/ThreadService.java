@@ -3,6 +3,7 @@ package db_project.services;
 import db_project.models.PostModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,14 +38,17 @@ public class ThreadService {
      * @brief Insert multiple posts into database by slug or id.
      */
 
-    public final List<PostModel> insertPostsIntoDb(final List<PostModel> posts, final String slug) {
-        Integer id = null;
-        Boolean isNumber = Boolean.FALSE;
+    private static Integer id = null;
+    private static Boolean isNumber = null;
+
+    private final StringBuilder[] makeRequests(final String slug) {
         final StringBuilder insertRequest = new StringBuilder(
                 "INSERT INTO posts (author, created, forum, \"message\", thread, parent) ");
         final StringBuilder getRequest = new StringBuilder("SELECT * FROM posts WHERE thread =");
         final StringBuilder updateRequest = new StringBuilder("UPDATE forums SET posts = posts + ?" +
                 " WHERE forums.slug = (SELECT threads.forum FROM threads WHERE");
+        final StringBuilder checkRequest = new StringBuilder("SELECT posts.id FROM posts WHERE " +
+                "posts.thread = ");
 
         try {
             id = Integer.valueOf(slug);
@@ -52,26 +56,41 @@ public class ThreadService {
             insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?, ?)");
             getRequest.append(" ?");
             updateRequest.append(" threads.id = ?)");
+            checkRequest.append(" ?");
 
         } catch (NumberFormatException ex) {
+            isNumber = Boolean.FALSE;
             insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
                     "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)), ?)");
             getRequest.append(" (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))");
             updateRequest.append(" threads.slug = ?)");
+            checkRequest.append(" (SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))");
         }
 
         getRequest.append(" ORDER BY posts.id");
 
-        jdbcTemplate.update(updateRequest.toString(), posts.size(), isNumber ? id : slug);
+        return new StringBuilder[]{insertRequest, getRequest, updateRequest, checkRequest};
+    }
+
+    public final List<PostModel> insertPostsIntoDb(final List<PostModel> posts, final String slug) {
+        final StringBuilder[] requests = makeRequests(slug);
 
         for (PostModel post : posts) {
 
-            if (post.getCreated() == null) {
-                post.setCreated(LocalDateTime.now().toString());
+            if (post.getParent() != 0) {
+                final List<Integer> dBPosts = jdbcTemplate.queryForList(
+                        requests[3].toString(),
+                        Integer.class,
+                        isNumber ? id : slug
+                );
+
+                if (!dBPosts.contains(post.getParent())) {
+                    throw new DuplicateKeyException(null);
+                }
             }
 
-            if (post.getParent() == null) {
-                post.setParent(0);
+            if (post.getCreated() == null) {
+                post.setCreated(LocalDateTime.now().toString());
             }
 
             Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
@@ -80,11 +99,13 @@ public class ThreadService {
                 timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
             }
 
-            jdbcTemplate.update(insertRequest.toString(), post.getAuthor(), timestamp, isNumber ? id : slug,
+            jdbcTemplate.update(requests[0].toString(), post.getAuthor(), timestamp, isNumber ? id : slug,
                     post.getMessage(), isNumber ? id : slug, post.getParent());
         }
 
-        final List<PostModel> dbPosts = jdbcTemplate.query(getRequest.toString(),
+        jdbcTemplate.update(requests[2].toString(), posts.size(), isNumber ? id : slug);
+
+        final List<PostModel> dbPosts = jdbcTemplate.query(requests[1].toString(),
                 isNumber ? new Object[]{id} : new Object[]{slug}, PostService::read);
         final Integer beginIndex = dbPosts.size() - posts.size();
         final Integer endIndex = dbPosts.size();
@@ -226,6 +247,10 @@ public class ThreadService {
                 ThreadService::read
         );
     }
+
+    /**
+     * @brief Get posts from thread sorted.
+     */
 
     public final List<PostModel> getPostsSorted(
             final String sort,

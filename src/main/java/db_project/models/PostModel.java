@@ -3,6 +3,8 @@ package db_project.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.LocalDateTime;
+
 /**
  * Created by lieroz on 28.02.17.
  */
@@ -46,7 +48,7 @@ public class PostModel {
         this.id = id;
         this.isEdited = isEdited;
         this.message = message;
-        this.parent = parent;
+        this.parent = parent == null ? 0 : parent;
         this.thread = thread;
     }
 
