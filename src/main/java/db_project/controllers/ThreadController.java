@@ -3,6 +3,7 @@ package db_project.controllers;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import db_project.models.PostModel;
+import db_project.models.PostsMarkerModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
 import db_project.services.PostService;
@@ -166,175 +167,59 @@ public class ThreadController {
     private static Integer markerValue = 0;
 
     @RequestMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<Test> viewThreads(
+    public final ResponseEntity<PostsMarkerModel> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "marker", required = false) final String marker,
             @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,
             @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
-        if (marker != null && !Objects.equals(sort, "parent_tree")) {
-            markerValue += limit;
-        }
-
-        final StringBuilder sql = new StringBuilder();
-        Integer id = null;
-        Boolean isNumber = false;
-
-        try {
-            id = Integer.valueOf(slug);
-            isNumber = Boolean.TRUE;
-
-            if (Objects.equals(sort, "flat")) {
-                sql.append("SELECT * FROM posts WHERE posts.thread = " +
-                        "(SELECT threads.id FROM threads WHERE threads.id = ?) ORDER BY posts.created");
-
-            } else if (Objects.equals(sort, "tree")) {
-                sql.append("WITH RECURSIVE some_threads AS (SELECT * FROM posts WHERE posts.thread = " +
-                        "(SELECT threads.id FROM threads WHERE threads.id = ?)), " +
-                        "tree AS (SELECT *, array[id] AS path " +
-                        "FROM some_threads WHERE parent = 0 " +
-                        "UNION " +
-                        "SELECT " +
-                        "st.*, tree.path || st.id AS path " +
-                        "FROM tree " +
-                        "JOIN some_threads st ON st.parent = tree.id) " +
-                        "SELECT * FROM tree ORDER BY path");
-
-            } else if (Objects.equals(sort, "parent_tree")) {
-                sql.append("WITH RECURSIVE some_threads AS (SELECT * FROM posts WHERE posts.thread = " +
-                        "(SELECT threads.id FROM threads WHERE threads.id = ?)), " +
-                        "tree AS (SELECT *, array[id] AS path " +
-                        "FROM some_threads WHERE parent = 0 " +
-                        "UNION " +
-                        "SELECT " +
-                        "st.*, tree.path || st.id AS path " +
-                        "FROM tree " +
-                        "JOIN some_threads st ON st.parent = tree.id) " +
-                        "SELECT * FROM tree ORDER BY path");
-            }
-
-        } catch (NumberFormatException ex) {
-            if (Objects.equals(sort, "flat")) {
-                sql.append("SELECT * FROM posts WHERE posts.thread = " +
-                        "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?)) ORDER BY posts.created");
-
-            } else if (Objects.equals(sort, "tree")) {
-                sql.append("WITH RECURSIVE some_threads AS (SELECT * FROM posts WHERE posts.thread = " +
-                        "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))), " +
-                        "tree AS (SELECT *, array[id] AS path " +
-                        "FROM some_threads WHERE parent = 0 " +
-                        "UNION " +
-                        "SELECT " +
-                        "st.*, tree.path || st.id AS path " +
-                        "FROM tree " +
-                        "JOIN some_threads st ON st.parent = tree.id) " +
-                        "SELECT * FROM tree ORDER BY path");
-
-            } else if (Objects.equals(sort, "parent_tree")) {
-                sql.append("WITH RECURSIVE some_threads AS (SELECT * FROM posts WHERE posts.thread = " +
-                        "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))), " +
-                        "tree AS (SELECT *, array[id] AS path " +
-                        "FROM some_threads WHERE parent = 0 " +
-                        "UNION " +
-                        "SELECT " +
-                        "st.*, tree.path || st.id AS path " +
-                        "FROM tree " +
-                        "JOIN some_threads st ON st.parent = tree.id) " +
-                        "SELECT * FROM tree ORDER BY path");
-            }
-        }
-
-        if (desc == Boolean.TRUE) {
-            sql.append(" DESC");
-        }
-
-        final List<PostModel> posts = jdbcTemplate.query(
-                sql.toString(),
-                isNumber ? new Object[]{id} : new Object[]{slug},
-                PostService::read
-        );
+        final List<PostModel> posts = service.getPostsSorted(sort, desc, slug);
 
         if (posts.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        Integer temp = 0;
+        markerValue += marker != null && !Objects.equals(sort, "parent_tree") ? limit : 0;
 
         if (Objects.equals(sort, "parent_tree")) {
-            Integer zeroCount = 0;
 
             if (markerValue >= posts.size() && marker != null) {
                 markerValue = 0;
-                return new ResponseEntity<>(new Test("some marker", new ArrayList<>()), HttpStatus.OK);
-            }
 
-            if (markerValue == posts.size()) {
+                return new ResponseEntity<>(new PostsMarkerModel(marker, new ArrayList<>()), HttpStatus.OK);
+
+            } else if (markerValue == posts.size()) {
                 markerValue = 0;
             }
+
+            Integer zeroCount = 0, counter = 0;
 
             for (PostModel post : posts.subList(markerValue, posts.size())) {
 
                 if (zeroCount.equals(limit) && desc == Boolean.TRUE) {
                     break;
-                }
 
-                if (zeroCount.equals(limit + 1) && (desc == Boolean.FALSE || desc == null)) {
-                    --temp;
+                } else if (zeroCount.equals(limit + 1) && (desc == Boolean.FALSE || desc == null)) {
+                    --counter;
                     break;
                 }
 
-                if (post.getParent().equals(0)) {
-                    ++zeroCount;
-                }
-
-                ++temp;
+                zeroCount += post.getParent().equals(0) ? 1 : 0;
+                ++counter;
             }
 
-            final List<PostModel> lst = posts.subList(markerValue, markerValue + temp);
-            markerValue += temp;
-
-            return new ResponseEntity<>(new Test("some marker", lst), HttpStatus.OK);
-
-        } else {
-            temp = limit + markerValue > posts.size() ? posts.size() : limit + markerValue;
+            return new ResponseEntity<>(new PostsMarkerModel(marker,
+                    posts.subList(markerValue, markerValue += counter)), HttpStatus.OK);
         }
 
         if (markerValue > posts.size()) {
             markerValue = 0;
-            return new ResponseEntity<>(new Test("some marker", new ArrayList<>()), HttpStatus.OK);
+
+            return new ResponseEntity<>(new PostsMarkerModel(marker, new ArrayList<>()), HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(new Test("some marker", posts.subList(markerValue, temp)), HttpStatus.OK);
-    }
-
-    public class Test {
-        private List<PostModel> posts;
-        private String marker;
-
-        @JsonCreator
-        public Test(
-                @JsonProperty("marker") final String marker,
-                @JsonProperty("posts") final List<PostModel> posts
-        ) {
-            this.marker = marker;
-            this.posts = posts;
-        }
-
-        public final List<PostModel> getPosts() {
-            return this.posts;
-        }
-
-        public void setPosts(final List<PostModel> posts) {
-            this.posts = posts;
-        }
-
-        public final String getMarker() {
-            return this.marker;
-        }
-
-        public void setMarker(final String marker) {
-            this.marker = marker;
-        }
+        return new ResponseEntity<>(new PostsMarkerModel(marker, posts.subList(markerValue,
+                limit + markerValue > posts.size() ? posts.size() : limit + markerValue)), HttpStatus.OK);
     }
 }

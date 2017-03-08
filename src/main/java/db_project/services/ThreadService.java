@@ -227,6 +227,54 @@ public class ThreadService {
         );
     }
 
+    public final List<PostModel> getPostsSorted(
+            final String sort,
+            final Boolean desc,
+            final String slug
+    ) {
+        final String recurseTemplate = " tree AS (SELECT *, array[id] AS path FROM some_threads WHERE parent = 0 " +
+                "UNION SELECT st.*, tree.path || st.id AS path FROM tree JOIN some_threads st ON st.parent = tree.id) " +
+                "SELECT * FROM tree ORDER BY path";
+        final StringBuilder sql = new StringBuilder();
+        Integer id = null;
+        Boolean isNumber = false;
+
+        try {
+            final String sqlTemplate = "SELECT * FROM posts WHERE posts.thread = " +
+                    "(SELECT threads.id FROM threads WHERE threads.id = ?)";
+            id = Integer.valueOf(slug);
+            isNumber = Boolean.TRUE;
+
+            if (Objects.equals(sort, "flat")) {
+                sql.append(sqlTemplate + " ORDER BY posts.created");
+
+            } else {
+                sql.append("WITH RECURSIVE some_threads AS (" + sqlTemplate + "), " + recurseTemplate);
+            }
+
+        } catch (NumberFormatException ex) {
+            final String sqlTemplate = "SELECT * FROM posts WHERE posts.thread = " +
+                    "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))";
+
+            if (Objects.equals(sort, "flat")) {
+                sql.append(sqlTemplate + " ORDER BY posts.created");
+
+            } else {
+                sql.append("WITH RECURSIVE some_threads AS (" + sqlTemplate + "), " + recurseTemplate);
+            }
+        }
+
+        if (desc == Boolean.TRUE) {
+            sql.append(" DESC");
+        }
+
+        return jdbcTemplate.query(
+                sql.toString(),
+                isNumber ? new Object[]{id} : new Object[]{slug},
+                PostService::read
+        );
+    }
+
     /**
      * @brief Serialize database row into ThreadModel object.
      */
