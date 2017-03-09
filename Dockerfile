@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-MAINTAINER Artem V. Navrotskiy
+MAINTAINER Andrey S. Kamakin
 
 # Обвновление списка пакетов
 RUN apt-get -y update
@@ -18,7 +18,7 @@ USER postgres
 # then create a database `docker` owned by the ``docker`` role.
 RUN /etc/init.d/postgresql start &&\
     psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
-    createdb -O docker docker &&\
+    createdb -E UTF8 -T template0 -O docker docker &&\
     /etc/init.d/postgresql stop
 
 # Adjust PostgreSQL configuration so that remote connections to the
@@ -46,7 +46,7 @@ RUN apt-get install -y openjdk-8-jdk-headless
 RUN apt-get install -y maven
 
 # Копируем исходный код в Docker-контейнер
-ENV WORK opt/Park_DB_API_Project
+ENV WORK /opt/Park_DB_API_Project
 ADD db_api/ $WORK/db_api/
 
 # Собираем и устанавливаем пакет
@@ -59,4 +59,4 @@ EXPOSE 5000
 #
 # Запускаем PostgreSQL и сервер
 #
-CMD service postgresql start && java -Xmx300M -Xmx300M -jar $WORK/db_api/target/DB_Project-1.0-SNAPSHOT.jar --database=jdbc:postgresql://localhost/docker --username=docker --password=docker
+CMD service postgresql start && java -Xmx300M -Xmx300M -jar $WORK/db_api/target/DB_Project-1.0-SNAPSHOT.jar
