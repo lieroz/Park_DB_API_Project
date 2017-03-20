@@ -74,6 +74,8 @@ public class ThreadService {
 
     public final List<PostModel> insertPostsIntoDb(final List<PostModel> posts, final String slug) {
         final StringBuilder[] requests = makeRequests(slug);
+        final String created = LocalDateTime.now().toString();
+        final Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(created, DateTimeFormatter.ISO_DATE_TIME));
 
         for (PostModel post : posts) {
 
@@ -89,15 +91,11 @@ public class ThreadService {
                 }
             }
 
-            if (post.getCreated() == null) {
-                post.setCreated(LocalDateTime.now().toString());
-            }
+//            Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
 
-            Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
-
-            if (!post.getCreated().endsWith("Z")) {
-                timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
-            }
+//            if (!post.getCreated().endsWith("Z")) {
+//                timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
+//            }
 
             jdbcTemplate.update(requests[0].toString(), post.getAuthor(), timestamp, isNumber ? id : slug,
                     post.getMessage(), isNumber ? id : slug, post.getParent());
@@ -291,6 +289,14 @@ public class ThreadService {
 
         if (desc == Boolean.TRUE) {
             sql.append(" DESC");
+        }
+
+        if (Objects.equals(sort, "flat")) {
+            sql.append(", posts.id");
+
+            if (desc == Boolean.TRUE) {
+                sql.append(" DESC");
+            }
         }
 
         return jdbcTemplate.query(

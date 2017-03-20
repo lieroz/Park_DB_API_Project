@@ -219,6 +219,9 @@ public class ThreadController {
             markerValue = 0;
 
             return new ResponseEntity<>(new PostsMarkerModel(marker, new ArrayList<>()), HttpStatus.OK);
+
+        } else if (markerValue == posts.size()) {
+            markerValue = 0;
         }
 
         return new ResponseEntity<>(new PostsMarkerModel(marker, posts.subList(markerValue,
