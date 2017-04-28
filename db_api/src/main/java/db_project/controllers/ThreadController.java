@@ -166,65 +166,27 @@ public class ThreadController {
      * @brief {slug} stands for thread-slug.
      */
 
-    private static Integer markerValue = 0;
+    private static Integer offset = 0;
 
     @RequestMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<PostsMarkerModel> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "marker", required = false) final String marker,
             @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,
-            @RequestParam(value = "desc", required = false) final Boolean desc,
-            @PathVariable("slug") final String slug
+            @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
+            @PathVariable("slug") final String slug_or_id
     ) {
-        final List<PostModel> posts = service.getPostsSorted(sort, desc, slug);
+        if (marker == null && offset != 0) {
+            offset = 0;
+        }
 
-        if (posts.isEmpty()) {
+        final List<PostModel> posts = service.retrieveSortedPosts(limit, offset, sort, desc, slug_or_id);
+        offset += limit;
+
+        if (posts.isEmpty() && marker == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        markerValue += marker != null && !Objects.equals(sort, "parent_tree") ? limit : 0;
-
-        if (Objects.equals(sort, "parent_tree")) {
-
-            if (markerValue >= posts.size() && marker != null) {
-                markerValue = 0;
-
-                return new ResponseEntity<>(new PostsMarkerModel(marker, new ArrayList<>()), HttpStatus.OK);
-
-            } else if (markerValue == posts.size()) {
-                markerValue = 0;
-            }
-
-            Integer zeroCount = 0, counter = 0;
-
-            for (PostModel post : posts.subList(markerValue, posts.size())) {
-
-                if (zeroCount.equals(limit) && desc == Boolean.TRUE) {
-                    break;
-
-                } else if (zeroCount.equals(limit + 1) && (desc == Boolean.FALSE || desc == null)) {
-                    --counter;
-                    break;
-                }
-
-                zeroCount += post.getParent().equals(0) ? 1 : 0;
-                ++counter;
-            }
-
-            return new ResponseEntity<>(new PostsMarkerModel(marker,
-                    posts.subList(markerValue, markerValue += counter)), HttpStatus.OK);
-        }
-
-        if (markerValue > posts.size()) {
-            markerValue = 0;
-
-            return new ResponseEntity<>(new PostsMarkerModel(marker, new ArrayList<>()), HttpStatus.OK);
-
-        } else if (markerValue == posts.size()) {
-            markerValue = 0;
-        }
-
-        return new ResponseEntity<>(new PostsMarkerModel(marker, posts.subList(markerValue,
-                limit + markerValue > posts.size() ? posts.size() : limit + markerValue)), HttpStatus.OK);
+        return new ResponseEntity<>(new PostsMarkerModel(marker, posts), HttpStatus.OK);
     }
 }
