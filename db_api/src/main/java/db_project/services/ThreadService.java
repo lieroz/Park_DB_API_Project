@@ -3,10 +3,13 @@ package db_project.services;
 import db_project.models.PostModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
+import db_project.services.queries.ThreadQueries;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.security.spec.InvalidParameterSpecException;
 import java.sql.Timestamp;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -120,7 +123,7 @@ public class ThreadService {
         final Integer id;
 
         try {
-            id  = Integer.valueOf(slug);
+            id = Integer.valueOf(slug);
 
         } catch (NumberFormatException ex) {
             return jdbcTemplate.query(sql.append("LOWER(slug) = LOWER(?)").toString(),
@@ -250,60 +253,32 @@ public class ThreadService {
      * @brief Get posts from thread sorted.
      */
 
-    public final List<PostModel> getPostsSorted(
-            final String sort,
-            final Boolean desc,
-            final String slug
+    public final List<PostModel> retrieveSortedPosts(
+            final Integer limit, final Integer offset, final String sort, final Boolean desc, final String slug_or_id
     ) {
-        final String recurseTemplate = " tree AS (SELECT *, array[id] AS path FROM some_threads WHERE parent = 0 " +
-                "UNION SELECT st.*, tree.path || st.id AS path FROM tree JOIN some_threads st ON st.parent = tree.id) " +
-                "SELECT * FROM tree ORDER BY path";
-        final StringBuilder sql = new StringBuilder();
-        Integer id = null;
-        Boolean isNumber = false;
+        Integer id = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) : null;
 
-        try {
-            final String sqlTemplate = "SELECT * FROM posts WHERE posts.thread = " +
-                    "(SELECT threads.id FROM threads WHERE threads.id = ?)";
-            id = Integer.valueOf(slug);
-            isNumber = Boolean.TRUE;
+        switch (sort) {
 
-            if (Objects.equals(sort, "flat")) {
-                sql.append(sqlTemplate + " ORDER BY posts.created");
-
-            } else {
-                sql.append("WITH RECURSIVE some_threads AS (" + sqlTemplate + "), " + recurseTemplate);
+            case "flat": {
+                return jdbcTemplate.query(ThreadQueries.postsFlatSortQuery(slug_or_id, desc),
+                        new Object[]{id == null ? slug_or_id : id, limit, offset}, PostService::read);
             }
 
-        } catch (NumberFormatException ex) {
-            final String sqlTemplate = "SELECT * FROM posts WHERE posts.thread = " +
-                    "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))";
+            case "tree": {
+                return jdbcTemplate.query(ThreadQueries.postsTreeSortQuery(slug_or_id, desc),
+                        new Object[]{id == null ? slug_or_id : id, limit, offset}, PostService::read);
+            }
 
-            if (Objects.equals(sort, "flat")) {
-                sql.append(sqlTemplate + " ORDER BY posts.created");
+            case "parent_tree": {
+                return jdbcTemplate.query(ThreadQueries.postsParentTreeSortQuery(slug_or_id, desc),
+                        new Object[]{id == null ? slug_or_id : id, limit, offset}, PostService::read);
+            }
 
-            } else {
-                sql.append("WITH RECURSIVE some_threads AS (" + sqlTemplate + "), " + recurseTemplate);
+            default: {
+                throw new NullPointerException();
             }
         }
-
-        if (desc == Boolean.TRUE) {
-            sql.append(" DESC");
-        }
-
-        if (Objects.equals(sort, "flat")) {
-            sql.append(", posts.id");
-
-            if (desc == Boolean.TRUE) {
-                sql.append(" DESC");
-            }
-        }
-
-        return jdbcTemplate.query(
-                sql.toString(),
-                isNumber ? new Object[]{id} : new Object[]{slug},
-                PostService::read
-        );
     }
 
     /**
@@ -313,7 +288,6 @@ public class ThreadService {
     public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
         final Timestamp timestamp = rs.getTimestamp("created");
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-//        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+03:00"));
 
         return new ThreadModel(
                 rs.getString("author"),
