@@ -1,9 +1,13 @@
 package db_project.services;
 
 import db_project.models.UserModel;
+import db_project.services.queries.UserQueries;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.Null;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -32,46 +36,45 @@ public final class UserService {
      * @brief Add new user to database.
      */
 
-    public final void insertUserIntoDb(final UserModel user) {
-        final String sql = "INSERT INTO users (about, email, fullname, nickname) " +
-                "VALUES(?, ?, ?, ?)";
-        jdbcTemplate.update(sql, user.getAbout(), user.getEmail(), user.getFullname(),
-                user.getNickname());
+    public final void insertUserIntoDb(@Nullable final String about, @Nullable final String email,
+                                       @Nullable final String fullname, @NotNull final String nickname) {
+        jdbcTemplate.update(UserQueries.createUserQuery(), about, email, fullname, nickname);
     }
 
     /**
      * @brief Get information about user.
      */
 
-    public final List<UserModel> getUserFromDb(final UserModel user) {
-        return jdbcTemplate.query(
-                "SELECT * FROM users WHERE LOWER(nickname) = LOWER(?)" +
-                        " OR LOWER(email) = LOWER(?)",
-                new Object[]{user.getNickname(), user.getEmail()},
-                UserService::read);
+    public final UserModel getUserFromDb(@Nullable final String nickname, @Nullable final String email) {
+        return jdbcTemplate.queryForObject(UserQueries.getUserQuery(), new Object[]{nickname, email}, UserService::read);
+    }
+
+    public final List<UserModel> getUsersFromDb(@Nullable final String nickname, @Nullable final String email) {
+        return jdbcTemplate.query(UserQueries.getUserQuery(), new Object[]{nickname, email}, UserService::read);
     }
 
     /**
      * @brief Update current information about a specific user.
      */
 
-    public final void updateUserInfoFromDb(final UserModel user) {
+    public final void updateUserInfoFromDb(@Nullable final String about, @Nullable final String email,
+                                           @Nullable final String fullname, @NotNull final String nickname) {
         final StringBuilder sql = new StringBuilder("UPDATE users SET");
         final List<Object> args = new ArrayList<>();
 
-        if (user.getAbout() != null && !user.getAbout().isEmpty()) {
+        if (about != null) {
             sql.append(" about = ?,");
-            args.add(user.getAbout());
+            args.add(about);
         }
 
-        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+        if (email != null) {
             sql.append(" email = ?,");
-            args.add(user.getEmail());
+            args.add(email);
         }
 
-        if (user.getFullname() != null && !user.getFullname().isEmpty()) {
+        if (fullname != null) {
             sql.append(" fullname = ?,");
-            args.add(user.getFullname());
+            args.add(fullname);
         }
 
         if (args.isEmpty()) {
@@ -79,8 +82,8 @@ public final class UserService {
         }
 
         sql.delete(sql.length() - 1, sql.length());
-        sql.append(" WHERE LOWER(nickname) = LOWER(?)");
-        args.add(user.getNickname());
+        sql.append(" WHERE nickname = ?");
+        args.add(nickname);
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 

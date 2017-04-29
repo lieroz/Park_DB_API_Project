@@ -35,11 +35,11 @@ class ServiceController {
 
     @RequestMapping("/clear")
     public final ResponseEntity<Object> clearService() {
-        jdbcTemplate.execute("DELETE FROM uservotes");
-        jdbcTemplate.execute("DELETE FROM posts");
-        jdbcTemplate.execute("DELETE FROM threads");
-        jdbcTemplate.execute("DELETE FROM forums");
-        jdbcTemplate.execute("DELETE FROM users");
+//        jdbcTemplate.execute("DELETE FROM uservotes");
+//        jdbcTemplate.execute("DELETE FROM posts");
+//        jdbcTemplate.execute("DELETE FROM threads");
+//        jdbcTemplate.execute("DELETE FROM forums");
+//        jdbcTemplate.execute("DELETE FROM users");
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

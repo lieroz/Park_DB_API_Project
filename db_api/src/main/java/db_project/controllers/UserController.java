@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * Created by lieroz on 23.02.17.
  */
@@ -50,19 +48,19 @@ public final class UserController {
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
-        user.setNickname(nickname);
-
         try {
-            service.insertUserIntoDb(user);
+            service.insertUserIntoDb(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getUserFromDb(user), HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(service.getUsersFromDb(nickname, user.getEmail()));
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(new UserModel(user), HttpStatus.CREATED);
+        user.setNickname(nickname);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     /**
@@ -73,20 +71,20 @@ public final class UserController {
     public final ResponseEntity<UserModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
-        final List<UserModel> users;
+        final UserModel user;
 
         try {
-            users = service.getUserFromDb(new UserModel(null, null, null, nickname));
+            user = service.getUserFromDb(nickname, null);
 
-            if (users.isEmpty()) {
+            if (user == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(users.get(0), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
     /**
@@ -101,25 +99,21 @@ public final class UserController {
             @RequestBody UserModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
-        user.setNickname(nickname);
-
         try {
-            service.updateUserInfoFromDb(user);
-            final List<UserModel> users = service.getUserFromDb(user);
+            service.updateUserInfoFromDb(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+            user = service.getUserFromDb(nickname, user.getEmail());
 
-            if (users.isEmpty()) {
+            if (user == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
-            user = users.get(0);
-
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(new UserModel(user), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 }
