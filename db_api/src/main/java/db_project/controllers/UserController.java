@@ -15,30 +15,16 @@ import org.springframework.web.bind.annotation.*;
  * Created by lieroz on 23.02.17.
  */
 
-/**
- * @brief Implementation of class that is responsible for handling all requests about user.
- */
-
 @RestController
 @RequestMapping(value = "/api/user/{nickname}")
 public final class UserController {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
-    /**
-     * @brief Wrapper on JdbcTemplate for more convenient usage.
-     */
     private final UserService service;
 
     public UserController(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.service = new UserService(jdbcTemplate);
     }
-
-    /**
-     * @brief User creation method.
-     */
 
     @RequestMapping(value = "/create",
             method = RequestMethod.POST,
@@ -63,10 +49,6 @@ public final class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    /**
-     * @brief Get user profile method.
-     */
-
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<UserViewModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
@@ -86,10 +68,6 @@ public final class UserController {
 
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
-
-    /**
-     * @brief Change user profile method.
-     */
 
     @RequestMapping(value = "/profile",
             method = RequestMethod.POST,

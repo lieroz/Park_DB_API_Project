@@ -20,30 +20,16 @@ import java.util.Objects;
  * Created by lieroz on 27.02.17.
  */
 
-/**
- * @brief Implementation of class that is responsible for handling all requests about forum.
- */
-
 @RestController
 @RequestMapping(value = "api/forum")
 public final class ForumController {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
-    /**
-     * @brief Wrapper on JdbcTemplate for more convenient usage.
-     */
     private final ForumService service;
 
     public ForumController(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.service = new ForumService(jdbcTemplate);
     }
-
-    /**
-     * @brief Create forum.
-     */
 
     @RequestMapping(value = "/create",
             method = RequestMethod.POST,
@@ -59,60 +45,41 @@ public final class ForumController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getForum(forum.getSlug()));
 
         } catch (DataAccessException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(service.getForum(forum.getSlug()));
     }
-
-    /**
-     * @brief Create thread.
-     * @brief {slug} stands for forum-slug here.
-     */
 
     @RequestMapping(value = "/{slug}/create",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ThreadModel> createSlug(
-            @RequestBody final ThreadModel thread,
+            @RequestBody ThreadModel thread,
             @PathVariable(value = "slug") final String slug
     ) {
-        if (thread.getSlug() == null) {
-            thread.setSlug(slug);
-        }
-
-        if (thread.getForum() == null) {
-            thread.setForum(slug);
-        }
-
-        final List<ThreadModel> threads;
-
         try {
-            threads = service.insertThreadIntoDb(thread);
+            thread = service.createThread(thread.getAuthor(), thread.getCreated(), thread.getForum(),
+                    thread.getMessage(), slug, thread.getTitle());
 
-            if (threads.isEmpty()) {
+            if (thread == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getThreadInfo(thread.getSlug()).get(0), HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getThread(slug));
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        if (Objects.equals(threads.get(0).getSlug(), threads.get(0).getForum())) {
-            threads.get(0).setSlug(null);
+        if (Objects.equals(thread.getSlug(), thread.getForum())) {
+            thread.setSlug(null);
         }
 
-        return new ResponseEntity<>(threads.get(0), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(thread);
     }
-
-    /**
-     * @brief Get all information about forum.
-     * @brief {slug} stands for forum-slug here.
-     */
 
     @RequestMapping(value = "/{slug}/details", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ForumModel> viewForum(
@@ -133,11 +100,6 @@ public final class ForumController {
 
         return new ResponseEntity<>(forum, HttpStatus.OK);
     }
-
-    /**
-     * @brief Get all threads from a forum.
-     * @brief {slug} stands for forum-slug here.
-     */
 
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(

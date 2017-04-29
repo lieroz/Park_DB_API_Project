@@ -5,6 +5,7 @@ import db_project.models.ThreadModel;
 import db_project.models.UserViewModel;
 import db_project.services.queries.ForumQueries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,52 +31,24 @@ final public class ForumService {
 
     public final void createForum(@NotNull final String userNickname,
                                   @NotNull final String slug, @NotNull final String title) {
-        jdbcTemplate.update(ForumQueries.createForumQuery(),
-                userNickname, slug, title);
+        jdbcTemplate.update(ForumQueries.createForumQuery(), userNickname, slug, title);
     }
 
-    public final ForumModel getForum(final String slug) {
-        return jdbcTemplate.queryForObject(ForumQueries.getForumQuery(),
-                new Object[]{slug}, ForumService::read
-        );
+    public final ForumModel getForum(@NotNull final String slug) {
+        return jdbcTemplate.queryForObject(ForumQueries.getForumQuery(), new Object[]{slug}, ForumService::read);
     }
 
-    public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
-        if (thread.getCreated() == null) {
-            thread.setCreated(LocalDateTime.now().toString());
-        }
+    public final ThreadModel createThread(@NotNull final String author, @Nullable final String created,
+                                          @NotNull final String forum, @NotNull final String message,
+                                          @NotNull final String slug, @NotNull final String title) {
+        jdbcTemplate.update(ForumQueries.createThreadQuery(), author, created, forum, message, slug, title);
+        jdbcTemplate.update(ForumQueries.updateThreadsCount(), forum);
 
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(thread.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
-
-        if (!thread.getCreated().endsWith("Z")) {
-            timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
-        }
-
-        final String sql = "INSERT INTO threads (author, created, forum, \"message\", " +
-                "slug, title) VALUES(?, ?, " +
-                "(SELECT slug FROM forums WHERE LOWER(slug) = LOWER(?)), " +
-                "?, ?, ?)";
-
-        jdbcTemplate.update(sql, thread.getAuthor(), timestamp, thread.getForum(),
-                thread.getMessage(), thread.getSlug(), thread.getTitle()
-        );
-
-        jdbcTemplate.update("UPDATE forums SET threads = threads + 1 WHERE LOWER(slug) = LOWER(?)",
-                thread.getForum());
-
-        return jdbcTemplate.query(
-                "SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
-                new Object[]{thread.getSlug()},
-                ThreadService::read
-        );
+        return jdbcTemplate.queryForObject(ForumQueries.getThreadQuery(), new Object[]{slug}, ThreadService::read);
     }
 
-    public final List<ThreadModel> getThreadInfo(final String slug) {
-        return jdbcTemplate.query(
-                "SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
-                new Object[]{slug},
-                ThreadService::read
-        );
+    public final ThreadModel getThread(@NotNull final String slug) {
+        return jdbcTemplate.queryForObject(ForumQueries.getThreadQuery(), new Object[]{slug}, ThreadService::read);
     }
 
     public final List<ThreadModel> getThreadsInfo(

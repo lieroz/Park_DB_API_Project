@@ -5,11 +5,9 @@ import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
 import db_project.services.queries.ThreadQueries;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.security.spec.InvalidParameterSpecException;
 import java.sql.Timestamp;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -286,13 +284,14 @@ public class ThreadService {
      */
 
     public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
-        final Timestamp timestamp = rs.getTimestamp("created");
+        Timestamp timestamp = rs.getTimestamp("created");
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         return new ThreadModel(
-                rs.getString("author"),
-                dateFormat.format(timestamp),
-                rs.getString("forum"),
+                rs.getString("nickname"),
+                dateFormat.format(timestamp.getTime()),
+                rs.getString("slug"),
                 rs.getInt("id"),
                 rs.getString("message"),
                 rs.getString("slug"),
