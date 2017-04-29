@@ -2,12 +2,11 @@ package db_project.controllers;
 
 import db_project.models.ForumModel;
 import db_project.models.ThreadModel;
-import db_project.models.UserModel;
+import db_project.models.UserViewModel;
 import db_project.services.ForumService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,16 +53,16 @@ public final class ForumController {
             @RequestBody final ForumModel forum
     ) {
         try {
-            service.insertForumIntoDb(forum);
+            service.createForum(forum.getUser(), forum.getSlug(), forum.getTitle());
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(new ForumModel(service.getForumInfo(forum.getSlug()).get(0)), HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getForum(forum.getSlug()));
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
 
-        return new ResponseEntity<>(new ForumModel(service.getForumInfo(forum.getSlug()).get(0)), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.getForum(forum.getSlug()));
     }
 
     /**
@@ -119,12 +118,12 @@ public final class ForumController {
     public final ResponseEntity<ForumModel> viewForum(
             @PathVariable("slug") final String slug
     ) {
-        final List<ForumModel> forums;
+        final ForumModel forum;
 
         try {
-            forums = service.getForumInfo(slug);
+            forum = service.getForum(slug);
 
-            if (forums.isEmpty()) {
+            if (forum == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
@@ -132,7 +131,7 @@ public final class ForumController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(new ForumModel(forums.get(0)), HttpStatus.OK);
+        return new ResponseEntity<>(forum, HttpStatus.OK);
     }
 
     /**
@@ -148,9 +147,9 @@ public final class ForumController {
             @PathVariable("slug") final String slug
     ) {
         try {
-            final List<ForumModel> forums = service.getForumInfo(slug);
+            final ForumModel forum = service.getForum(slug);
 
-            if (forums.isEmpty()) {
+            if (forum == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
@@ -162,19 +161,19 @@ public final class ForumController {
     }
 
     @RequestMapping(value = "/{slug}/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<UserModel>> viewUsers(
+    public final ResponseEntity<List<UserViewModel>> viewUsers(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "since", required = false) final String since,
             @RequestParam(value = "desc", required = false) final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
-        List<UserModel> users;
+        List<UserViewModel> users;
 
         try {
             users = service.getUsersInfo(slug, limit, since, desc);
-            final List<ForumModel> forums = service.getForumInfo(slug);
+            final ForumModel forum = service.getForum(slug);
 
-            if (forums.isEmpty()) {
+            if (forum == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 

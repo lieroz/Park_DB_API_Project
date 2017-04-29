@@ -2,7 +2,9 @@ package db_project.services;
 
 import db_project.models.ForumModel;
 import db_project.models.ThreadModel;
-import db_project.models.UserModel;
+import db_project.models.UserViewModel;
+import db_project.services.queries.ForumQueries;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,34 +20,25 @@ import java.util.List;
  * Created by lieroz on 27.02.17.
  */
 
-/**
- * @brief Wrapper on JdbcTemplate for more convenient usage.
- */
-
 @Service
 final public class ForumService {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
 
     public ForumService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /**
-     * @brief Insert new forum into database.
-     */
-
-    public final void insertForumIntoDb(final ForumModel forum) {
-        jdbcTemplate.update("INSERT INTO forums (slug, title, \"user\") VALUES(?, ?, " +
-                "(SELECT nickname FROM users WHERE LOWER(nickname) = LOWER(?)))",
-                forum.getSlug(), forum.getTitle(), forum.getUser());
+    public final void createForum(@NotNull final String userNickname,
+                                  @NotNull final String slug, @NotNull final String title) {
+        jdbcTemplate.update(ForumQueries.createForumQuery(),
+                userNickname, slug, title);
     }
 
-    /**
-     * @brief Insert new thread into database.
-     */
+    public final ForumModel getForum(final String slug) {
+        return jdbcTemplate.queryForObject(ForumQueries.getForumQuery(),
+                new Object[]{slug}, ForumService::read
+        );
+    }
 
     public final List<ThreadModel> insertThreadIntoDb(final ThreadModel thread) {
         if (thread.getCreated() == null) {
@@ -77,22 +70,6 @@ final public class ForumService {
         );
     }
 
-    /**
-     * @brief Get information about forum.
-     */
-
-    public final List<ForumModel> getForumInfo(final String slug) {
-        return jdbcTemplate.query(
-                "SELECT * FROM forums WHERE LOWER(slug) = LOWER(?)",
-                new Object[]{slug},
-                ForumService::read
-        );
-    }
-
-    /**
-     * @brief Get information about a specific thread.
-     */
-
     public final List<ThreadModel> getThreadInfo(final String slug) {
         return jdbcTemplate.query(
                 "SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
@@ -100,10 +77,6 @@ final public class ForumService {
                 ThreadService::read
         );
     }
-
-    /**
-     * @brief Get information about all threads in a specific forum.
-     */
 
     public final List<ThreadModel> getThreadsInfo(
             final String slug,
@@ -144,11 +117,7 @@ final public class ForumService {
         );
     }
 
-    /**
-     * @brief Get information about all users in a specific forum.
-     */
-
-    public final List<UserModel> getUsersInfo(
+    public final List<UserViewModel> getUsersInfo(
             final String slug,
             final Integer limit,
             final String since,
@@ -191,17 +160,13 @@ final public class ForumService {
         );
     }
 
-    /**
-     * @brief Serialize database row into ForumModel object.
-     */
-
     public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(
                 rs.getInt("posts"),
                 rs.getString("slug"),
                 rs.getInt("threads"),
                 rs.getString("title"),
-                rs.getString("user")
+                rs.getString("nickname")
         );
     }
 }

@@ -8,14 +8,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 public class PostDetailsModel {
-    private UserModel author;
+    private UserViewModel author;
     private ForumModel forum;
     private PostModel post;
     private ThreadModel thread;
 
     @JsonCreator
     public PostDetailsModel(
-            @JsonProperty("author") final UserModel author,
+            @JsonProperty("author") final UserViewModel author,
             @JsonProperty("forum") final ForumModel forum,
             @JsonProperty("post") final PostModel post,
             @JsonProperty("thread") final ThreadModel thread
@@ -26,11 +26,11 @@ public class PostDetailsModel {
         this.thread = thread;
     }
 
-    public final UserModel getAuthor() {
+    public final UserViewModel getAuthor() {
         return this.author;
     }
 
-    public void setAuthor(final UserModel author) {
+    public void setAuthor(final UserViewModel author) {
         this.author = author;
     }
 

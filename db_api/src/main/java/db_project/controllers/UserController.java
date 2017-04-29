@@ -1,6 +1,6 @@
 package db_project.controllers;
 
-import db_project.models.UserModel;
+import db_project.models.UserViewModel;
 import db_project.services.UserService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -45,15 +45,15 @@ public final class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<Object> createUser(
-            @RequestBody UserModel user,
+            @RequestBody UserViewModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
         try {
-            service.insertUserIntoDb(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+            service.createUser(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
 
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(service.getUsersFromDb(nickname, user.getEmail()));
+                    .body(service.getUsers(nickname, user.getEmail()));
 
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -68,13 +68,13 @@ public final class UserController {
      */
 
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserModel> viewProfile(
+    public final ResponseEntity<UserViewModel> viewProfile(
             @PathVariable(value = "nickname") String nickname
     ) {
-        final UserModel user;
+        final UserViewModel user;
 
         try {
-            user = service.getUserFromDb(nickname, null);
+            user = service.getUser(nickname, null);
 
             if (user == null) {
                 throw new EmptyResultDataAccessException(0);
@@ -95,13 +95,13 @@ public final class UserController {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserModel> modifyProfile(
-            @RequestBody UserModel user,
+    public final ResponseEntity<UserViewModel> modifyProfile(
+            @RequestBody UserViewModel user,
             @PathVariable(value = "nickname") String nickname
     ) {
         try {
-            service.updateUserInfoFromDb(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
-            user = service.getUserFromDb(nickname, user.getEmail());
+            service.updateUser(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+            user = service.getUser(nickname, user.getEmail());
 
             if (user == null) {
                 throw new EmptyResultDataAccessException(0);

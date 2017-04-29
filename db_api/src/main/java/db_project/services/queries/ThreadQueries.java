@@ -4,7 +4,7 @@ package db_project.services.queries;
  * Created by lieroz on 28.04.17.
  */
 public class ThreadQueries {
-    static public String postsFlatSortQuery(final String slug_or_id, final Boolean desc) {
+    public static String postsFlatSortQuery(final String slug_or_id, final Boolean desc) {
         return "SELECT * FROM posts WHERE posts.thread = " +
                     (slug_or_id.matches("\\d+")
                         ? "?" : "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))") +
@@ -12,7 +12,7 @@ public class ThreadQueries {
                 " LIMIT ? OFFSET ?";
     }
 
-    static public String postsTreeSortQuery(final String slug_or_id, final Boolean desc) {
+    public static String postsTreeSortQuery(final String slug_or_id, final Boolean desc) {
         return "WITH RECURSIVE some_posts AS (" +
                 "    SELECT posts.*" +
                 "    FROM posts" +
@@ -39,7 +39,7 @@ public class ThreadQueries {
                 "SELECT * FROM tree ORDER BY path " + (desc ? "DESC" : "ASC") + " LIMIT ? OFFSET ?";
     }
 
-    static public String postsParentTreeSortQuery(final String slug_or_id, final Boolean desc) {
+    public static String postsParentTreeSortQuery(final String slug_or_id, final Boolean desc) {
         return "WITH RECURSIVE some_posts AS (" +
                 "    SELECT posts.*" +
                 "    FROM posts" +

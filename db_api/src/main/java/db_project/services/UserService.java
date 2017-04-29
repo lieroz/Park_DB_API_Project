@@ -1,13 +1,12 @@
 package db_project.services;
 
-import db_project.models.UserModel;
+import db_project.models.UserViewModel;
 import db_project.services.queries.UserQueries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.Null;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public final class UserService {
      * @brief Add new user to database.
      */
 
-    public final void insertUserIntoDb(@Nullable final String about, @Nullable final String email,
+    public final void createUser(@Nullable final String about, @Nullable final String email,
                                        @Nullable final String fullname, @NotNull final String nickname) {
         jdbcTemplate.update(UserQueries.createUserQuery(), about, email, fullname, nickname);
     }
@@ -45,11 +44,11 @@ public final class UserService {
      * @brief Get information about user.
      */
 
-    public final UserModel getUserFromDb(@Nullable final String nickname, @Nullable final String email) {
+    public final UserViewModel getUser(@Nullable final String nickname, @Nullable final String email) {
         return jdbcTemplate.queryForObject(UserQueries.getUserQuery(), new Object[]{nickname, email}, UserService::read);
     }
 
-    public final List<UserModel> getUsersFromDb(@Nullable final String nickname, @Nullable final String email) {
+    public final List<UserViewModel> getUsers(@Nullable final String nickname, @Nullable final String email) {
         return jdbcTemplate.query(UserQueries.getUserQuery(), new Object[]{nickname, email}, UserService::read);
     }
 
@@ -57,7 +56,7 @@ public final class UserService {
      * @brief Update current information about a specific user.
      */
 
-    public final void updateUserInfoFromDb(@Nullable final String about, @Nullable final String email,
+    public final void updateUser(@Nullable final String about, @Nullable final String email,
                                            @Nullable final String fullname, @NotNull final String nickname) {
         final StringBuilder sql = new StringBuilder("UPDATE users SET");
         final List<Object> args = new ArrayList<>();
@@ -91,8 +90,8 @@ public final class UserService {
      * @brief Serialize database row into UserModel object.
      */
 
-    public static UserModel read(ResultSet rs, int rowNum) throws SQLException {
-        return new UserModel(
+    public static UserViewModel read(ResultSet rs, int rowNum) throws SQLException {
+        return new UserViewModel(
                 rs.getString("about"),
                 rs.getString("email"),
                 rs.getString("fullname"),
