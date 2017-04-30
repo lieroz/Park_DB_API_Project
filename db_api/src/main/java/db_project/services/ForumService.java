@@ -77,23 +77,19 @@ final public class ForumService {
     }
 
     public final List<UserViewModel> getForumUsersInfo(@NotNull final String slug, @NotNull final Integer limit,
-            @Nullable final String since, @NotNull final Boolean desc
-    ) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE LOWER(users.nickname) IN " +
-                "(SELECT LOWER(posts.author) FROM posts WHERE LOWER(posts.forum) = LOWER(?) " +
-                "UNION " +
-                "SELECT LOWER(threads.author) FROM threads WHERE LOWER(threads.forum) = LOWER(?))");
+            @Nullable final String since, @NotNull final Boolean desc) {
+        final StringBuilder sql = new StringBuilder(ForumQueries.getUsersByForumQuery());
         final List<Object> args = new ArrayList<>();
-        args.add(slug);
         args.add(slug);
 
         if (since != null) {
-            sql.append(" AND LOWER(users.nickname) ");
-            sql.append(desc == Boolean.TRUE ? "< LOWER(?)" : "> LOWER(?)");
+            sql.append(" AND u.nickname ");
+            sql.append(desc == Boolean.TRUE ? "< ?" : "> ?");
             args.add(since);
         }
 
-        sql.append(" ORDER BY LOWER(users.nickname) COLLATE ucs_basic");
+        sql.append(" GROUP BY u.about, u.email, u.fullname, u.nickname");
+        sql.append(" ORDER BY u.nickname COLLATE ucs_basic");
 
         if (desc == Boolean.TRUE) {
             sql.append(" DESC");

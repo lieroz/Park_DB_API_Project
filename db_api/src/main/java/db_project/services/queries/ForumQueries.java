@@ -55,11 +55,10 @@ public class ForumQueries {
     }
 
     public static String getUsersByForumQuery() {
-        return "WITH f AS (SELECT id FROM forums WHERE slug = ?) " +
-                "SELECT u.about, u.email, u.fullname, u.nickname " +
-                "FROM users u " +
-                "  JOIN threads t ON (t.user_id = u.id)" +
-                "  JOIN posts f ON (p.user_id = u.id) " +
-                "  WHERE f.id = ?";
+        return "SELECT u.about, u.email, u.fullname, u.nickname FROM forums f" +
+                "  JOIN threads t ON (t.forum_id = f.id)" +
+                "  JOIN posts p ON (p.forum_id = f.id)" +
+                "  JOIN users u ON (u.id = p.user_id OR u.id = t.user_id) " +
+                "WHERE f.id = (SELECT id FROM forums WHERE slug = ?)";
     }
 }

@@ -14,7 +14,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by lieroz on 27.02.17.
@@ -99,13 +98,13 @@ public final class ForumController {
         return ResponseEntity.status(HttpStatus.OK).body(forum);
     }
 
+    @SuppressWarnings("Duplicates")
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "since", required = false) final String since,
             @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
-            @PathVariable("slug") final String slug
-    ) {
+            @PathVariable("slug") final String slug) {
         try {
             final ForumModel forum = service.getForum(slug);
 
@@ -119,17 +118,14 @@ public final class ForumController {
         return ResponseEntity.status(HttpStatus.OK).body(service.getForumThreadsInfo(slug, limit, since, desc));
     }
 
+    @SuppressWarnings("Duplicates")
     @RequestMapping(value = "/{slug}/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<UserViewModel>> viewUsers(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "since", required = false) final String since,
-            @RequestParam(value = "desc", required = false) final Boolean desc,
-            @PathVariable("slug") final String slug
-    ) {
-        List<UserViewModel> users;
-
+            @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
+            @PathVariable("slug") final String slug) {
         try {
-            users = service.getForumUsersInfo(slug, limit, since, desc);
             final ForumModel forum = service.getForum(slug);
 
             if (forum == null) {
@@ -140,6 +136,6 @@ public final class ForumController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(users);
+        return ResponseEntity.status(HttpStatus.OK).body(service.getForumUsersInfo(slug, limit, since, desc));
     }
 }

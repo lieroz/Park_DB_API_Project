@@ -14,13 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by lieroz on 27.02.17.
  */
+
 @RestController
 @RequestMapping(value = "/api/thread/{slug_or_id}")
 public class ThreadController {
