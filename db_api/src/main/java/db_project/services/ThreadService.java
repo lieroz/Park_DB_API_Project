@@ -4,136 +4,56 @@ import db_project.models.PostModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
 import db_project.services.queries.ThreadQueries;
-import org.springframework.dao.DuplicateKeyException;
+import db_project.views.ForumSimpleView;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
  * Created by lieroz on 27.02.17.
  */
-
-/**
- * @brief Wrapper on JdbcTemplate for more convenient usage.
- */
-
 @Service
 public class ThreadService {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
 
     public ThreadService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /**
-     * @brief Insert multiple posts into database by slug or id.
-     */
+    private static Integer postId = 0;
 
-    private static Integer id = null;
-    private static Boolean isNumber = null;
-
-    private final StringBuilder[] makeRequests(final String slug) {
-        final StringBuilder insertRequest = new StringBuilder(
-                "INSERT INTO posts (author, created, forum, \"message\", thread, parent) ");
-        final StringBuilder getRequest = new StringBuilder("SELECT * FROM posts WHERE thread =");
-        final StringBuilder updateRequest = new StringBuilder("UPDATE forums SET posts = posts + ?" +
-                " WHERE forums.slug = (SELECT threads.forum FROM threads WHERE");
-        final StringBuilder checkRequest = new StringBuilder("SELECT posts.id FROM posts WHERE " +
-                "posts.thread = ");
-
-        try {
-            id = Integer.valueOf(slug);
-            isNumber = Boolean.TRUE;
-            insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE id = ?), ?, ?, ?)");
-            getRequest.append(" ?");
-            updateRequest.append(" threads.id = ?)");
-            checkRequest.append(" ?");
-
-        } catch (NumberFormatException ex) {
-            isNumber = Boolean.FALSE;
-            insertRequest.append("VALUES(?, ?, (SELECT forum FROM threads WHERE LOWER(slug) = LOWER(?)), ?," +
-                    "(SELECT id FROM threads WHERE LOWER(slug) = LOWER(?)), ?)");
-            getRequest.append(" (SELECT id FROM threads WHERE LOWER(slug) = LOWER(?))");
-            updateRequest.append(" threads.slug = ?)");
-            checkRequest.append(" (SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))");
-        }
-
-        getRequest.append(" ORDER BY posts.id");
-
-        return new StringBuilder[]{insertRequest, getRequest, updateRequest, checkRequest};
-    }
-
-    public final List<PostModel> insertPostsIntoDb(final List<PostModel> posts, final String slug) {
-        final StringBuilder[] requests = makeRequests(slug);
-        final String created = LocalDateTime.now().toString();
-        final Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(created, DateTimeFormatter.ISO_DATE_TIME));
+    @Transactional
+    public final void createPosts(final List<PostModel> posts, final String slug_or_id) {
+        final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
+                jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
+        final ForumSimpleView forumSimpleView = jdbcTemplate.queryForObject(ThreadQueries.getForumIdAndSlugQuery(slug_or_id),
+                new Object[]{slug_or_id}, (rs, rowNum) -> new ForumSimpleView(rs.getString("slug"), rs.getInt("id")));
+        final Timestamp created = new Timestamp(System.currentTimeMillis());
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (PostModel post : posts) {
+            post.setCreated(dateFormat.format(created));
+            post.setForum(forumSimpleView.getForumSlug());
+            post.setId(++postId);
+            post.setThread(threadId);
 
-            if (post.getParent() != 0) {
-                final List<Integer> dBPosts = jdbcTemplate.queryForList(
-                        requests[3].toString(),
-                        Integer.class,
-                        isNumber ? id : slug
-                );
-
-                if (!dBPosts.contains(post.getParent())) {
-                    throw new DuplicateKeyException(null);
-                }
-            }
-
-//            Timestamp timestamp = Timestamp.valueOf(LocalDateTime.parse(post.getCreated(), DateTimeFormatter.ISO_DATE_TIME));
-
-//            if (!post.getCreated().endsWith("Z")) {
-//                timestamp = Timestamp.from(timestamp.toInstant().plusSeconds(-10800));
-//            }
-
-            jdbcTemplate.update(requests[0].toString(), post.getAuthor(), timestamp, isNumber ? id : slug,
-                    post.getMessage(), isNumber ? id : slug, post.getParent());
+            jdbcTemplate.update(ThreadQueries.createPostsQuery(), post.getAuthor(), created, forumSimpleView.getForumId(),
+                    post.getMessage(), post.getParent(), threadId);
         }
 
-        jdbcTemplate.update(requests[2].toString(), posts.size(), isNumber ? id : slug);
-
-        final List<PostModel> dbPosts = jdbcTemplate.query(requests[1].toString(),
-                isNumber ? new Object[]{id} : new Object[]{slug}, PostService::read);
-        final Integer beginIndex = dbPosts.size() - posts.size();
-        final Integer endIndex = dbPosts.size();
-
-        return dbPosts.subList(beginIndex, endIndex);
+        jdbcTemplate.update(ThreadQueries.updateForumsPostsCount(), posts.size(), forumSimpleView.getForumId());
     }
 
-    /**
-     * @brief Get all information about a specific thread from database.
-     */
-
-    public final List<ThreadModel> getThreadInfo(final String slug) {
-        final StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE ");
-        final Integer id;
-
-        try {
-            id = Integer.valueOf(slug);
-
-        } catch (NumberFormatException ex) {
-            return jdbcTemplate.query(sql.append("LOWER(slug) = LOWER(?)").toString(),
-                    new Object[]{slug}, ThreadService::read);
-        }
-
-        return jdbcTemplate.query(sql.append("id = ?").toString(), new Object[]{id}, ThreadService::read);
+    public final ThreadModel getThreadInfo(final String slug_or_id) {
+        return jdbcTemplate.queryForObject(ThreadQueries.getThreadQuery(slug_or_id), new Object[]{slug_or_id}, ThreadService::read);
     }
-
-    /**
-     * @brief Update information about a specific thread from database.
-     */
 
     public final void updateThreadInfoFromDb(final ThreadModel thread, final String slug) {
         final StringBuilder sql = new StringBuilder("UPDATE threads SET");
@@ -168,10 +88,6 @@ public class ThreadService {
 
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
-
-    /**
-     * @brief Update votes for thread int database.
-     */
 
     private void getUserVotes(final VoteModel vote) {
         final List<VoteModel> usersList = jdbcTemplate.query("SELECT * FROM uservotes " +
@@ -233,11 +149,6 @@ public class ThreadService {
                 new Object[]{id}, ThreadService::read);
     }
 
-
-    /**
-     * @brief Get information about thread by id.
-     */
-
     public final List<ThreadModel> getThreadInfoById(final Integer id) {
         return jdbcTemplate.query(
                 "SELECT * FROM threads WHERE id = ?",
@@ -246,11 +157,7 @@ public class ThreadService {
         );
     }
 
-    /**
-     * @brief Get posts from thread sorted.
-     */
-
-    public final List<PostModel> retrieveSortedPosts(
+    public final List<PostModel> getSortedPosts(
             final Integer limit, final Integer offset, final String sort, final Boolean desc, final String slug_or_id
     ) {
         Integer id = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) : null;
@@ -277,10 +184,6 @@ public class ThreadService {
             }
         }
     }
-
-    /**
-     * @brief Serialize database row into ThreadModel object.
-     */
 
     public static ThreadModel read(ResultSet rs, int rowNum) throws SQLException {
         Timestamp timestamp = rs.getTimestamp("created");

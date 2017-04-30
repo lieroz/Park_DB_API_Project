@@ -21,9 +21,8 @@ import java.util.Objects;
 /**
  * Created by lieroz on 27.02.17.
  */
-
 @RestController
-@RequestMapping(value = "/api/thread/{slug}")
+@RequestMapping(value = "/api/thread/{slug_or_id}")
 public class ThreadController {
     private final JdbcTemplate jdbcTemplate;
     private final ThreadService service;
@@ -33,42 +32,36 @@ public class ThreadController {
         this.service = new ThreadService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/create",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<PostModel>> createPosts(
-            @RequestBody List<PostModel> posts,
-            @PathVariable(value = "slug") final String slug
-    ) {
+    @RequestMapping(value = "/create", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<List<PostModel>> createPosts(@RequestBody List<PostModel> posts,
+            @PathVariable(value = "slug_or_id") final String slug_or_id) {
         try {
 
             if (posts.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
-            posts = service.insertPostsIntoDb(posts, slug);
+            service.createPosts(posts, slug_or_id);
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(posts, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(posts);
     }
 
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadModel> viewThread(
-            @PathVariable(value = "slug") final String slug
-    ) {
-        final List<ThreadModel> threads;
+    public final ResponseEntity<ThreadModel> viewThread(@PathVariable(value = "slug_or_id") final String slug_or_id) {
+        final ThreadModel thread;
 
         try {
-            threads = service.getThreadInfo(slug);
+            thread = service.getThreadInfo(slug_or_id);
 
-            if (threads.isEmpty()) {
+            if (thread == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
@@ -76,56 +69,48 @@ public class ThreadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(thread);
     }
 
-    @RequestMapping(value = "/details",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/details", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ThreadModel> updateThread(
-            @RequestBody final ThreadModel thread,
-            @PathVariable(value = "slug") final String slug
+            @RequestBody ThreadModel thread,
+            @PathVariable(value = "slug_or_id") final String slug_or_id
     ) {
-        final List<ThreadModel> threads;
-
         try {
-            service.updateThreadInfoFromDb(thread, slug);
-            threads = service.getThreadInfo(slug);
+            service.updateThreadInfoFromDb(thread, slug_or_id);
+            thread = service.getThreadInfo(slug_or_id);
 
-            if (threads.isEmpty()) {
+            if (thread == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getThreadInfo(slug).get(0), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getThreadInfo(slug_or_id), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
+        return new ResponseEntity<>(thread, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/vote",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadModel> voteForThread(
-            @RequestBody final VoteModel vote,
-            @PathVariable("slug") final String slug
-    ) {
+    @RequestMapping(value = "/vote", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<ThreadModel> voteForThread(@RequestBody final VoteModel vote,
+            @PathVariable("slug_or_id") final String slug_or_id) {
         final List<ThreadModel> threads;
 
         try {
-            threads = service.updateVotes(vote, slug);
+            threads = service.updateVotes(vote, slug_or_id);
 
             if (threads.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getThreadInfo(slug).get(0), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(service.getThreadInfo(slug_or_id), HttpStatus.CONFLICT);
 
         } catch (DataAccessException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -142,13 +127,12 @@ public class ThreadController {
             @RequestParam(value = "marker", required = false) final String marker,
             @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,
             @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
-            @PathVariable("slug") final String slug_or_id
-    ) {
+            @PathVariable("slug_or_id") final String slug_or_id) {
         if (marker == null && offset != 0) {
             offset = 0;
         }
 
-        final List<PostModel> posts = service.retrieveSortedPosts(limit, offset, sort, desc, slug_or_id);
+        final List<PostModel> posts = service.getSortedPosts(limit, offset, sort, desc, slug_or_id);
         offset += limit;
 
         if (posts.isEmpty() && marker == null) {

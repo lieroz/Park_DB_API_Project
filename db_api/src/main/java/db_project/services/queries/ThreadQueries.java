@@ -4,27 +4,56 @@ package db_project.services.queries;
  * Created by lieroz on 28.04.17.
  */
 public class ThreadQueries {
-    public static String createPostsQuery(final String slug_of_id) {
-        return "INSERT INTO posts (user_id, forum_id, message, parent, thread_id) VALUES(";
+    public static String getForumIdAndSlugQuery(final String slug_or_id) {
+        return "SELECT forums.id, forums.slug FROM forums " +
+                "JOIN threads ON (threads.forum_id = forums.id) " +
+                "WHERE " + (slug_or_id.matches("\\d+") ? "threads.id = ?" : "threads.slug = ?");
+    }
+
+    public static String getThreadId() {
+        return "SELECT id FROM threads WHERE slug = ?";
+    }
+
+    public static String createPostsQuery() {
+        return "INSERT INTO posts (user_id, created, forum_id, message, parent, thread_id) VALUES(" +
+                "(SELECT id FROM users WHERE nickname = ?), ?, ?, ?, ?, ?)";
+    }
+
+    public static String updateForumsPostsCount() {
+        return "UPDATE forums SET posts = posts + ? WHERE forums.id = ?";
+    }
+
+    public static String getThreadQuery(final String slug_or_id) {
+        return "SELECT u.nickname, t.created, f.slug AS f_slug, t.id, t.message, t.slug AS t_slug, t.title, t.votes " +
+                "FROM threads t " +
+                "  JOIN users u ON (t.user_id = u.id)" +
+                "  JOIN forums f ON (t.forum_id = f.id) " +
+                "  WHERE " + (slug_or_id.matches("\\d+") ? "t.id = ?" : "t.slug = ?");
     }
 
     public static String postsFlatSortQuery(final String slug_or_id, final Boolean desc) {
-        return "SELECT * FROM posts WHERE posts.thread = " +
+        return "SELECT u.nickname, p.created, f.slug, p.id, p.is_edited, p.message, p.parent, p.thread_id " +
+                "FROM posts p" +
+                "  JOIN users u ON (u.id = p.user_id)" +
+                "  JOIN forums f ON (f.id = p.forum_id) " +
+                "WHERE p.thread_id = " +
                     (slug_or_id.matches("\\d+")
-                        ? "?" : "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))") +
-                " ORDER BY posts.created " + (desc ? "DESC" : "ASC") + ", posts.id " + (desc ? "DESC" : "ASC") +
+                        ? "?" : "(SELECT threads.id FROM threads WHERE threads.slug = ?)") +
+                " ORDER BY p.created " + (desc ? "DESC" : "ASC") + ", p.id " + (desc ? "DESC" : "ASC") +
                 " LIMIT ? OFFSET ?";
     }
 
     public static String postsTreeSortQuery(final String slug_or_id, final Boolean desc) {
         return "WITH RECURSIVE some_posts AS (" +
-                "    SELECT posts.*" +
-                "    FROM posts" +
-                "      JOIN threads ON posts.thread = threads.id" +
-                "        WHERE threads.id = " +
-                            (slug_or_id.matches("\\d+") ?
-                                "?" : "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))"
-                            ) +
+                "    SELECT u.nickname, p.created, f.slug, p.id, p.is_edited, p.message, p.parent, p.thread_id" +
+                "    FROM posts p" +
+                "      JOIN users u ON (u.id = p.user_id)" +
+                "      JOIN forums f ON (f.id = p.forum_id) " +
+                "      JOIN threads t ON (t.id = p.thread_id)" +
+                "    WHERE t.id = " +
+                        (slug_or_id.matches("\\d+") ?
+                                "?" : "(SELECT threads.id FROM threads WHERE threads.slug = ?)"
+                        ) +
                 "), tree AS (" +
                 "    (" +
                 "      SELECT *, array[id] AS path" +
@@ -45,13 +74,15 @@ public class ThreadQueries {
 
     public static String postsParentTreeSortQuery(final String slug_or_id, final Boolean desc) {
         return "WITH RECURSIVE some_posts AS (" +
-                "    SELECT posts.*" +
-                "    FROM posts" +
-                "      JOIN threads ON posts.thread = threads.id" +
-                "        WHERE threads.id = " +
-                            (slug_or_id.matches("\\d+") ?
-                                "?" : "(SELECT threads.id FROM threads WHERE LOWER(threads.slug) = LOWER(?))"
-                            ) +
+                "    SELECT u.nickname, p.created, f.slug, p.id, p.is_edited, p.message, p.parent, p.thread_id" +
+                "    FROM posts p" +
+                "      JOIN users u ON (u.id = p.user_id)" +
+                "      JOIN forums f ON (f.id = p.forum_id) " +
+                "      JOIN threads t ON (t.id = p.thread_id)" +
+                "    WHERE t.id = " +
+                        (slug_or_id.matches("\\d+") ?
+                                "?" : "(SELECT threads.id FROM threads WHERE threads.slug = ?)"
+                        ) +
                 "), tree AS (" +
                 "    (" +
                 "      SELECT *, array[id] AS path" +

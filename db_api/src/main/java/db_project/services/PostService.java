@@ -124,17 +124,17 @@ public class PostService {
     public static PostModel read(ResultSet rs, int rowNum) throws SQLException {
         final Timestamp timestamp = rs.getTimestamp("created");
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+03:00"));
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         return new PostModel(
-                rs.getString("author"),
+                rs.getString("nickname"),
                 dateFormat.format(timestamp),
-                rs.getString("forum"),
+                rs.getString("slug"),
                 rs.getInt("id"),
-                rs.getBoolean("isEdited"),
+                rs.getBoolean("is_edited"),
                 rs.getString("message"),
                 rs.getInt("parent"),
-                rs.getInt("thread")
+                rs.getInt("thread_id")
         );
     }
 }
