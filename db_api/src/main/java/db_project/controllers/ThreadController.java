@@ -19,7 +19,6 @@ import java.util.List;
 /**
  * Created by lieroz on 27.02.17.
  */
-
 @RestController
 @RequestMapping(value = "/api/thread/{slug_or_id}")
 public class ThreadController {
@@ -34,7 +33,7 @@ public class ThreadController {
     @RequestMapping(value = "/create", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<PostModel>> createPosts(@RequestBody List<PostModel> posts,
-            @PathVariable(value = "slug_or_id") final String slug_or_id) {
+                                                             @PathVariable(value = "slug_or_id") final String slug_or_id) {
         try {
 
             if (posts.isEmpty()) {
@@ -65,7 +64,7 @@ public class ThreadController {
             }
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(thread);
@@ -86,36 +85,36 @@ public class ThreadController {
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getThreadInfo(slug_or_id), HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getThreadInfo(slug_or_id));
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(thread, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(thread);
     }
 
     @RequestMapping(value = "/vote", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ThreadModel> voteForThread(@RequestBody final VoteModel vote,
-            @PathVariable("slug_or_id") final String slug_or_id) {
-        final List<ThreadModel> threads;
+                                                           @PathVariable("slug_or_id") final String slug_or_id) {
+        final ThreadModel thread;
 
         try {
-            threads = service.updateVotes(vote, slug_or_id);
+            thread = service.updateThreadVotes(vote, slug_or_id);
 
-            if (threads.isEmpty()) {
+            if (thread == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DuplicateKeyException ex) {
-            return new ResponseEntity<>(service.getThreadInfo(slug_or_id), HttpStatus.CONFLICT);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getThreadInfo(slug_or_id));
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(thread);
     }
 
     private static Integer offset = 0;
@@ -135,9 +134,9 @@ public class ThreadController {
         offset += limit;
 
         if (posts.isEmpty() && marker == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(new PostsMarkerModel(marker, posts), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(new PostsMarkerModel(marker, posts));
     }
 }

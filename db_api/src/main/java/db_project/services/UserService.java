@@ -2,8 +2,6 @@ package db_project.services;
 
 import db_project.models.UserViewModel;
 import db_project.services.queries.UserQueries;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,21 +22,19 @@ public final class UserService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public final void createUser(@Nullable final String about, @Nullable final String email,
-                                       @Nullable final String fullname, @NotNull final String nickname) {
+    public final void createUser(final String about, final String email, final String fullname, final String nickname) {
         jdbcTemplate.update(UserQueries.createUserQuery(), about, email, fullname, nickname);
     }
 
-    public final UserViewModel getUser(@Nullable final String nickname, @Nullable final String email) {
+    public final UserViewModel getUser(final String nickname, final String email) {
         return jdbcTemplate.queryForObject(UserQueries.getUserQuery(), new Object[]{nickname, email}, UserService::read);
     }
 
-    public final List<UserViewModel> getUsers(@Nullable final String nickname, @Nullable final String email) {
+    public final List<UserViewModel> getUsers(final String nickname, final String email) {
         return jdbcTemplate.query(UserQueries.getUserQuery(), new Object[]{nickname, email}, UserService::read);
     }
 
-    public final void updateUser(@Nullable final String about, @Nullable final String email,
-                                           @Nullable final String fullname, @NotNull final String nickname) {
+    public final void updateUser(final String about, final String email, final String fullname, final String nickname) {
         final StringBuilder sql = new StringBuilder("UPDATE users SET");
         final List<Object> args = new ArrayList<>();
 

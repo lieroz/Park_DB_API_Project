@@ -18,7 +18,6 @@ import java.util.List;
 /**
  * Created by lieroz on 27.02.17.
  */
-
 @RestController
 @RequestMapping(value = "api/forum")
 public final class ForumController {
@@ -30,13 +29,9 @@ public final class ForumController {
         this.service = new ForumService(jdbcTemplate);
     }
 
-    @RequestMapping(value = "/create",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ForumModel> createForum(
-            @RequestBody final ForumModel forum
-    ) {
+    @RequestMapping(value = "/create", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<ForumModel> createForum(@RequestBody final ForumModel forum) {
         try {
             service.createForum(forum.getUser(), forum.getSlug(), forum.getTitle());
 
@@ -50,14 +45,10 @@ public final class ForumController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.getForum(forum.getSlug()));
     }
 
-    @RequestMapping(value = "/{slug}/create",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadModel> createSlug(
-            @RequestBody ThreadModel thread,
-            @PathVariable(value = "slug") final String slug
-    ) {
+    @RequestMapping(value = "/{slug}/create", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<ThreadModel> createSlug(@RequestBody ThreadModel thread,
+                                                        @PathVariable(value = "slug") final String slug) {
         final String threadSlug = thread.getSlug();
 
         try {
@@ -79,9 +70,7 @@ public final class ForumController {
     }
 
     @RequestMapping(value = "/{slug}/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ForumModel> viewForum(
-            @PathVariable("slug") final String slug
-    ) {
+    public final ResponseEntity<ForumModel> viewForum(@PathVariable("slug") final String slug) {
         final ForumModel forum;
 
         try {

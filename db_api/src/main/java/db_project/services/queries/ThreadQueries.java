@@ -31,6 +31,14 @@ public class ThreadQueries {
                 "  WHERE " + (slug_or_id.matches("\\d+") ? "t.id = ?" : "t.slug = ?");
     }
 
+    public static String updateUserVoteQuery() {
+        return "UPDATE users SET thread_id = ?, voice = ? WHERE nickname = ?";
+    }
+
+    public static String updateThreadVotesQuery() {
+        return "UPDATE threads SET votes = (SELECT SUM(voice) FROM users WHERE thread_id = ?) WHERE id = ?";
+    }
+
     public static String postsFlatSortQuery(final String slug_or_id, final Boolean desc) {
         return "SELECT u.nickname, p.created, f.slug, p.id, p.is_edited, p.message, p.parent, p.thread_id " +
                 "FROM posts p" +

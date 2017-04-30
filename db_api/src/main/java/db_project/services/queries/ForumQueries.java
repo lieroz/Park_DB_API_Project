@@ -30,12 +30,12 @@ public class ForumQueries {
         return "UPDATE forums SET threads = threads + 1 WHERE slug = ?";
     }
 
-    public static String getThreadByTitleQuery() {
+    public static String getThreadByIdQuery() {
         return "SELECT u.nickname, t.created, f.slug as f_slug, t.id, t.message, t.slug as t_slug, t.title, t.votes " +
                 "FROM threads t " +
                 "  JOIN users u ON (t.user_id = u.id)" +
                 "  JOIN forums f ON (t.forum_id = f.id) " +
-                "  WHERE t.title = ?";
+                "  WHERE t.id = ?";
     }
 
     public static String getThreadBySlugQuery() {
@@ -43,7 +43,7 @@ public class ForumQueries {
                 "FROM threads t " +
                 "  JOIN users u ON (t.user_id = u.id)" +
                 "  JOIN forums f ON (t.forum_id = f.id) " +
-                "  WHERE t.slug = ?";
+                "WHERE t.slug = ?";
     }
 
     public static String getThreadsByForumQuery() {
@@ -55,10 +55,16 @@ public class ForumQueries {
     }
 
     public static String getUsersByForumQuery() {
-        return "SELECT u.about, u.email, u.fullname, u.nickname FROM forums f" +
-                "  JOIN threads t ON (t.forum_id = f.id)" +
-                "  JOIN posts p ON (p.forum_id = f.id)" +
-                "  JOIN users u ON (u.id = p.user_id OR u.id = t.user_id) " +
-                "WHERE f.id = (SELECT id FROM forums WHERE slug = ?)";
+        return "WITH users_table AS (" +
+                "  SELECT t.user_id, f1.slug" +
+                "  FROM forums f1" +
+                "    JOIN threads t ON (t.forum_id = f1.id)" +
+                "  UNION" +
+                "  SELECT p.user_id, f2.slug" +
+                "  FROM forums f2" +
+                "    JOIN posts p ON (p.forum_id = f2.id)" +
+                ") SELECT u.about, u.email, u.fullname, u.nickname" +
+                "  FROM users u" +
+                "  WHERE u.id IN (SELECT user_id FROM users_table WHERE slug = ?)";
     }
 }

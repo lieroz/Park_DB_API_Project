@@ -89,94 +89,32 @@ public class ThreadService {
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    private void getUserVotes(final VoteModel vote) {
-        final List<VoteModel> usersList = jdbcTemplate.query("SELECT * FROM uservotes " +
-                        "WHERE LOWER(nickname) = LOWER(?)",
-                new Object[]{vote.getNickname()}, (rs, rowNum) ->
-                        new VoteModel(rs.getString("nickname"), rs.getInt("voice")));
-        final Map<String, Integer> usersMap = new LinkedHashMap<>();
-
-        for (VoteModel user : usersList) {
-            usersMap.put(user.getNickname(), user.getVoice());
-        }
-
-        if (usersMap.containsKey(vote.getNickname())) {
-
-            if (usersMap.get(vote.getNickname()) < 0 && vote.getVoice() < 0) {
-                vote.setVoice(0);
-
-            } else if (usersMap.get(vote.getNickname()) < 0 && vote.getVoice() > 0) {
-                vote.setVoice(2);
-
-            } else if (usersMap.get(vote.getNickname()) > 0 && vote.getVoice() < 0) {
-                vote.setVoice(-2);
-
-            } else {
-                vote.setVoice(0);
-            }
-
-            jdbcTemplate.update("UPDATE uservotes SET voice = voice + ? " +
-                    "WHERE LOWER(nickname) = LOWER(?)", vote.getVoice(), vote.getNickname());
-
-        } else {
-            jdbcTemplate.update("INSERT INTO uservotes (nickname, voice) VALUES(?, ?)",
-                    vote.getNickname(), vote.getVoice());
-        }
+    @Transactional
+    public final ThreadModel updateThreadVotes(final VoteModel vote, final String slug_or_id) {
+        final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
+                jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
+        jdbcTemplate.update(ThreadQueries.updateUserVoteQuery(), threadId, vote.getVoice(), vote.getNickname());
+        jdbcTemplate.update(ThreadQueries.updateThreadVotesQuery(), threadId, threadId);
+        return jdbcTemplate.queryForObject(ThreadQueries.getThreadQuery(slug_or_id), new Object[]{slug_or_id}, ThreadService::read);
     }
 
-    public final List<ThreadModel> updateVotes(final VoteModel vote, final String slug) {
-        final StringBuilder sql = new StringBuilder("UPDATE threads SET votes = votes + ? WHERE ");
-        final List<Object> args = new ArrayList<>();
-        final Integer id;
-        getUserVotes(vote);
-        args.add(vote.getVoice());
-
-        try {
-            id = Integer.valueOf(slug);
-
-        } catch (NumberFormatException ex) {
-            args.add(slug);
-            jdbcTemplate.update(sql.append("LOWER(slug) = LOWER(?)").toString(), args.toArray());
-
-            return jdbcTemplate.query("SELECT * FROM threads WHERE LOWER(slug) = LOWER(?)",
-                    new Object[]{slug}, ThreadService::read);
-        }
-
-        args.add(id);
-        jdbcTemplate.update(sql.append("id = ?").toString(), args.toArray());
-
-        return jdbcTemplate.query("SELECT * FROM threads WHERE id = ?",
-                new Object[]{id}, ThreadService::read);
-    }
-
-    public final List<ThreadModel> getThreadInfoById(final Integer id) {
-        return jdbcTemplate.query(
-                "SELECT * FROM threads WHERE id = ?",
-                new Object[]{id},
-                ThreadService::read
-        );
-    }
-
-    public final List<PostModel> getSortedPosts(
-            final Integer limit, final Integer offset, final String sort, final Boolean desc, final String slug_or_id
-    ) {
-        Integer id = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) : null;
-
+    public final List<PostModel> getSortedPosts(final Integer limit, final Integer offset, final String sort,
+                                                final Boolean desc, final String slug_or_id) {
         switch (sort) {
 
             case "flat": {
                 return jdbcTemplate.query(ThreadQueries.postsFlatSortQuery(slug_or_id, desc),
-                        new Object[]{id == null ? slug_or_id : id, limit, offset}, PostService::read);
+                        new Object[]{slug_or_id, limit, offset}, PostService::read);
             }
 
             case "tree": {
                 return jdbcTemplate.query(ThreadQueries.postsTreeSortQuery(slug_or_id, desc),
-                        new Object[]{id == null ? slug_or_id : id, limit, offset}, PostService::read);
+                        new Object[]{slug_or_id, limit, offset}, PostService::read);
             }
 
             case "parent_tree": {
                 return jdbcTemplate.query(ThreadQueries.postsParentTreeSortQuery(slug_or_id, desc),
-                        new Object[]{id == null ? slug_or_id : id, limit, offset}, PostService::read);
+                        new Object[]{slug_or_id, limit, offset}, PostService::read);
             }
 
             default: {
