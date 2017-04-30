@@ -22,20 +22,10 @@ import java.util.Objects;
  * Created by lieroz on 27.02.17.
  */
 
-/**
- * @brief Implementation of class that is responsible for handling all requests about thread.
- */
-
 @RestController
 @RequestMapping(value = "/api/thread/{slug}")
 public class ThreadController {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
-    /**
-     * @brief Wrapper on JdbcTemplate for more convenient usage.
-     */
     private final ThreadService service;
 
     public ThreadController(final JdbcTemplate jdbcTemplate) {
@@ -48,18 +38,16 @@ public class ThreadController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<PostModel>> createPosts(
-            @RequestBody final List<PostModel> posts,
+            @RequestBody List<PostModel> posts,
             @PathVariable(value = "slug") final String slug
     ) {
-        final List<PostModel> dbPosts;
-
         try {
 
             if (posts.isEmpty()) {
                 throw new EmptyResultDataAccessException(0);
             }
 
-            dbPosts = service.insertPostsIntoDb(posts, slug);
+            posts = service.insertPostsIntoDb(posts, slug);
 
         } catch (DuplicateKeyException ex) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -68,13 +56,8 @@ public class ThreadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(dbPosts, HttpStatus.CREATED);
+        return new ResponseEntity<>(posts, HttpStatus.CREATED);
     }
-
-    /**
-     * @brief Get details about specific thread.
-     * @brief {slug} stands for thread-slug.
-     */
 
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<ThreadModel> viewThread(
@@ -95,11 +78,6 @@ public class ThreadController {
 
         return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
     }
-
-    /**
-     * @brief Update a specific thread.
-     * @brief {slug} stands for thread-slug.
-     */
 
     @RequestMapping(value = "/details",
             method = RequestMethod.POST,
@@ -129,11 +107,6 @@ public class ThreadController {
         return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
     }
 
-    /**
-     * @brief Vote for a specific thread.
-     * @brief {slug} stands for thread-slug.
-     */
-
     @RequestMapping(value = "/vote",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
@@ -160,11 +133,6 @@ public class ThreadController {
 
         return new ResponseEntity<>(threads.get(0), HttpStatus.OK);
     }
-
-    /**
-     * @brief Show posts sorted.
-     * @brief {slug} stands for thread-slug.
-     */
 
     private static Integer offset = 0;
 

@@ -128,8 +128,7 @@ public class ThreadService {
                     new Object[]{slug}, ThreadService::read);
         }
 
-        return jdbcTemplate.query(sql.append("id = ?").toString(),
-                new Object[]{id}, ThreadService::read);
+        return jdbcTemplate.query(sql.append("id = ?").toString(), new Object[]{id}, ThreadService::read);
     }
 
     /**
@@ -291,10 +290,10 @@ public class ThreadService {
         return new ThreadModel(
                 rs.getString("nickname"),
                 dateFormat.format(timestamp.getTime()),
-                rs.getString("slug"),
+                rs.getString("f_slug"),
                 rs.getInt("id"),
                 rs.getString("message"),
-                rs.getString("slug"),
+                rs.getString("t_slug"),
                 rs.getString("title"),
                 rs.getInt("votes")
         );

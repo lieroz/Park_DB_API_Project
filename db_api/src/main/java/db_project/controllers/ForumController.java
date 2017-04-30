@@ -59,23 +59,21 @@ public final class ForumController {
             @RequestBody ThreadModel thread,
             @PathVariable(value = "slug") final String slug
     ) {
+        final String threadSlug = thread.getSlug();
+
         try {
-            thread = service.createThread(thread.getAuthor(), thread.getCreated(), thread.getForum(),
-                    thread.getMessage(), slug, thread.getTitle());
+            thread = service.createThread(thread.getAuthor(), thread.getCreated(), slug,
+                    thread.getMessage(), thread.getSlug(), thread.getTitle());
 
             if (thread == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
         } catch (DuplicateKeyException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getThread(slug));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(service.getThreadBySlug(threadSlug));
 
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-
-        if (Objects.equals(thread.getSlug(), thread.getForum())) {
-            thread.setSlug(null);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(thread);
@@ -95,17 +93,17 @@ public final class ForumController {
             }
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(forum, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(forum);
     }
 
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<ThreadModel>> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "since", required = false) final String since,
-            @RequestParam(value = "desc", required = false) final Boolean desc,
+            @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
             @PathVariable("slug") final String slug
     ) {
         try {
@@ -116,10 +114,9 @@ public final class ForumController {
             }
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-
-        return new ResponseEntity<>(service.getThreadsInfo(slug, limit, since, desc), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(service.getForumThreadsInfo(slug, limit, since, desc));
     }
 
     @RequestMapping(value = "/{slug}/users", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -132,7 +129,7 @@ public final class ForumController {
         List<UserViewModel> users;
 
         try {
-            users = service.getUsersInfo(slug, limit, since, desc);
+            users = service.getForumUsersInfo(slug, limit, since, desc);
             final ForumModel forum = service.getForum(slug);
 
             if (forum == null) {
@@ -140,9 +137,9 @@ public final class ForumController {
             }
 
         } catch (DataAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(users);
     }
 }

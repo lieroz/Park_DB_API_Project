@@ -11,9 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,41 +37,35 @@ final public class ForumService {
 
     public final ThreadModel createThread(@NotNull final String author, @Nullable final String created,
                                           @NotNull final String forum, @NotNull final String message,
-                                          @NotNull final String slug, @NotNull final String title) {
-        jdbcTemplate.update(ForumQueries.createThreadQuery(), author, created, forum, message, slug, title);
+                                          @Nullable final String slug, @NotNull final String title) {
+        if (created != null) {
+            jdbcTemplate.update(ForumQueries.createThreadWithTimeQuery(), author, created, forum, message, slug, title);
+
+        } else {
+            jdbcTemplate.update(ForumQueries.createThreadWithoutTimeQuery(), author, forum, message, slug, title);
+        }
+
         jdbcTemplate.update(ForumQueries.updateThreadsCount(), forum);
-
-        return jdbcTemplate.queryForObject(ForumQueries.getThreadQuery(), new Object[]{slug}, ThreadService::read);
+        return jdbcTemplate.queryForObject(ForumQueries.getThreadByTitleQuery(), new Object[]{title}, ThreadService::read);
     }
 
-    public final ThreadModel getThread(@NotNull final String slug) {
-        return jdbcTemplate.queryForObject(ForumQueries.getThreadQuery(), new Object[]{slug}, ThreadService::read);
+    public final ThreadModel getThreadBySlug(@NotNull final String slug) {
+        return jdbcTemplate.queryForObject(ForumQueries.getThreadBySlugQuery(), new Object[]{slug}, ThreadService::read);
     }
 
-    public final List<ThreadModel> getThreadsInfo(
-            final String slug,
-            final Integer limit,
-            final String since,
-            final Boolean desc
-    ) {
-        StringBuilder sql = new StringBuilder("SELECT * FROM threads WHERE LOWER(forum) = LOWER(?)");
+    public final List<ThreadModel> getForumThreadsInfo(@NotNull final String slug, @NotNull final Integer limit,
+            @Nullable final String since, @NotNull final Boolean desc) {
+        final StringBuilder sql = new StringBuilder(ForumQueries.getThreadsByForumQuery());
         final List<Object> args = new ArrayList<>();
         args.add(slug);
 
         if (since != null) {
-            sql.append(" AND created ");
-
-            if (desc == Boolean.TRUE) {
-                sql.append("<= ?");
-
-            } else {
-                sql.append(">= ?");
-            }
-
-            args.add(Timestamp.valueOf(LocalDateTime.parse(since, DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+            sql.append(" AND t.created ");
+            sql.append(desc == Boolean.TRUE ? "<= ?" : ">= ?");
+            args.add(since);
         }
 
-        sql.append(" ORDER BY created");
+        sql.append(" ORDER BY t.created");
 
         if (desc == Boolean.TRUE) {
             sql.append(" DESC");
@@ -82,19 +73,11 @@ final public class ForumService {
 
         sql.append(" LIMIT ?");
         args.add(limit);
-
-        return jdbcTemplate.query(
-                sql.toString(),
-                args.toArray(new Object[args.size()]),
-                ThreadService::read
-        );
+        return jdbcTemplate.query(sql.toString(), args.toArray(new Object[args.size()]), ThreadService::read);
     }
 
-    public final List<UserViewModel> getUsersInfo(
-            final String slug,
-            final Integer limit,
-            final String since,
-            final Boolean desc
+    public final List<UserViewModel> getForumUsersInfo(@NotNull final String slug, @NotNull final Integer limit,
+            @Nullable final String since, @NotNull final Boolean desc
     ) {
         StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE LOWER(users.nickname) IN " +
                 "(SELECT LOWER(posts.author) FROM posts WHERE LOWER(posts.forum) = LOWER(?) " +
@@ -106,14 +89,7 @@ final public class ForumService {
 
         if (since != null) {
             sql.append(" AND LOWER(users.nickname) ");
-
-            if (desc == Boolean.TRUE) {
-                sql.append("< LOWER(?)");
-
-            } else {
-                sql.append("> LOWER(?)");
-            }
-
+            sql.append(desc == Boolean.TRUE ? "< LOWER(?)" : "> LOWER(?)");
             args.add(since);
         }
 
@@ -125,12 +101,7 @@ final public class ForumService {
 
         sql.append(" LIMIT ?");
         args.add(limit);
-
-        return jdbcTemplate.query(
-                sql.toString(),
-                args.toArray(new Object[args.size()]),
-                UserService::read
-        );
+        return jdbcTemplate.query(sql.toString(), args.toArray(new Object[args.size()]), UserService::read);
     }
 
     public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {

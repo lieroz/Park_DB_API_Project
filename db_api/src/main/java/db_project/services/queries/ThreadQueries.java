@@ -4,6 +4,10 @@ package db_project.services.queries;
  * Created by lieroz on 28.04.17.
  */
 public class ThreadQueries {
+    public static String createPostsQuery(final String slug_of_id) {
+        return "INSERT INTO posts (user_id, forum_id, message, parent, thread_id) VALUES(";
+    }
+
     public static String postsFlatSortQuery(final String slug_or_id, final Boolean desc) {
         return "SELECT * FROM posts WHERE posts.thread = " +
                     (slug_or_id.matches("\\d+")
