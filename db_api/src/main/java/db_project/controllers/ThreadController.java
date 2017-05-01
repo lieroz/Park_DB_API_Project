@@ -1,9 +1,6 @@
 package db_project.controllers;
 
-import db_project.models.PostModel;
-import db_project.models.PostsMarkerModel;
-import db_project.models.ThreadModel;
-import db_project.models.VoteModel;
+import db_project.models.*;
 import db_project.services.ThreadService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -77,7 +74,7 @@ public class ThreadController {
             @PathVariable(value = "slug_or_id") final String slug_or_id
     ) {
         try {
-            service.updateThreadInfoFromDb(thread, slug_or_id);
+            service.updateThreadInfoFromDb(thread.getMessage(), thread.getTitle(), slug_or_id);
             thread = service.getThreadInfo(slug_or_id);
 
             if (thread == null) {

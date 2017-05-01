@@ -90,7 +90,7 @@ final public class ForumService {
         return jdbcTemplate.query(sql.toString(), args.toArray(new Object[args.size()]), UserService::read);
     }
 
-    private static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
+    public static ForumModel read(ResultSet rs, int rowNum) throws SQLException {
         return new ForumModel(
                 rs.getInt("posts"),
                 rs.getString("slug"),

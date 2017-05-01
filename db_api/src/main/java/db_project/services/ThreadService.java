@@ -4,6 +4,7 @@ import db_project.models.PostModel;
 import db_project.models.ThreadModel;
 import db_project.models.VoteModel;
 import db_project.services.queries.ThreadQueries;
+import db_project.services.queries.UserQueries;
 import db_project.views.ForumSimpleView;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -55,18 +56,18 @@ public class ThreadService {
         return jdbcTemplate.queryForObject(ThreadQueries.getThreadQuery(slug_or_id), new Object[]{slug_or_id}, ThreadService::read);
     }
 
-    public final void updateThreadInfoFromDb(final ThreadModel thread, final String slug) {
+    public final void updateThreadInfoFromDb(final String message, final String title, final String slug_or_id) {
         final StringBuilder sql = new StringBuilder("UPDATE threads SET");
         final List<Object> args = new ArrayList<>();
 
-        if (thread.getMessage() != null && !thread.getMessage().isEmpty()) {
+        if (message != null) {
             sql.append(" message = ?,");
-            args.add(thread.getMessage());
+            args.add(message);
         }
 
-        if (thread.getTitle() != null && !thread.getTitle().isEmpty()) {
+        if (title != null) {
             sql.append(" title = ?,");
-            args.add(thread.getTitle());
+            args.add(title);
         }
 
         if (args.isEmpty()) {
@@ -74,23 +75,14 @@ public class ThreadService {
         }
 
         sql.delete(sql.length() - 1, sql.length());
-        final Integer id;
-
-        try {
-            id = Integer.valueOf(slug);
-            sql.append(" WHERE id = ?");
-            args.add(id);
-
-        } catch (NumberFormatException ex) {
-            sql.append(" WHERE LOWER(slug) = LOWER(?)");
-            args.add(slug);
-        }
-
+        sql.append(slug_or_id.matches("\\d+") ? " WHERE id = ?" : " WHERE slug = ?");
+        args.add(slug_or_id);
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
     @Transactional
     public final ThreadModel updateThreadVotes(final VoteModel vote, final String slug_or_id) {
+        jdbcTemplate.queryForObject(UserQueries.getUserQuery(), new Object[]{vote.getNickname(), null}, UserService::read);
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
         jdbcTemplate.update(ThreadQueries.updateUserVoteQuery(), threadId, vote.getVoice(), vote.getNickname());

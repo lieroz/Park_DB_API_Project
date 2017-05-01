@@ -1,6 +1,10 @@
 package db_project.services;
 
 import db_project.models.*;
+import db_project.services.queries.ForumQueries;
+import db_project.services.queries.PostQueries;
+import db_project.services.queries.ThreadQueries;
+import db_project.services.queries.UserQueries;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -8,118 +12,65 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.TimeZone;
 
 /**
  * Created by lieroz on 3.03.17.
  */
-
-/**
- * @brief Wrapper on JdbcTemplate for more convenient usage.
- */
-
 @Service
 public class PostService {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
 
     public PostService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /**
-     * @brief Get post by id from database.
-     */
-
-    public final List<PostModel> getPostFromDb(final Integer id) {
-        final String sql = "SELECT * FROM posts WHERE id = ?";
-        return jdbcTemplate.query(
-                "SELECT * FROM posts WHERE id = ?",
-                new Object[]{id},
-                PostService::read);
+    public final PostModel getPost(final Integer id) {
+        return jdbcTemplate.queryForObject(PostQueries.getPostQuery(), new Object[]{id}, PostService::read);
     }
 
-    /**
-     * @brief Get detailed post from database.
-     */
+    public final PostDetailsModel getDetailedPostInfo(final Integer id, String[] related) {
+        final PostModel post = getPost(id);
+        UserViewModel user = null;
+        ForumModel forum = null;
+        ThreadModel thread = null;
 
-    public final PostDetailsModel getDetailedPostFromDb(final PostModel post, String[] related) {
-//        UserModel user = null;
-//        ForumModel forum = null;
-//        ThreadModel thread = null;
-//
-//        if (related != null) {
-//
-//            for (String relation : related) {
-//
-//                if (Objects.equals(relation, "user")) {
-//                    UserService userService = new UserService(jdbcTemplate);
-//                    List<UserModel> users = userService.getUserFromDb(new UserModel(null, null, null, post.getAuthor()));
-//
-//                    if (!users.isEmpty()) {
-//                        user = users.get(0);
-//                    }
-//                }
-//
-//                if (relation.equals("forum")) {
-//                    ForumService forumService = new ForumService(jdbcTemplate);
-//                    List<ForumModel> forums = forumService.getForumInfo(post.getForum());
-//
-//                    if (!forums.isEmpty()) {
-//                        forum = forums.get(0);
-//                    }
-//
-//                    forum.setThreads(jdbcTemplate.queryForObject(
-//                            "SELECT COUNT(*) FROM threads WHERE LOWER(forum) = LOWER(?)",
-//                            Integer.class,
-//                            forum.getSlug()
-//                    ));
-//                }
-//
-//                if (relation.equals("thread")) {
-//                    ThreadService forumService = new ThreadService(jdbcTemplate);
-//                    List<ThreadModel> threads = forumService.getThreadInfoById(post.getThread());
-//
-//                    if (!threads.isEmpty()) {
-//                        thread = threads.get(0);
-//                    }
-//                }
-//            }
-//        }
+        if (related != null) {
 
-        return new PostDetailsModel(null, null, null, null);
-    }
+            for (String relation : related) {
 
-    /**
-     * @brief Update post by id in database.
-     */
+                if (relation.equals("user")) {
+                    user = jdbcTemplate.queryForObject(UserQueries.getUserQuery(), new Object[]{post.getAuthor(), null}, UserService::read);
+                }
 
-    public final List<PostModel> updatePostInDb(final PostModel post, final Integer id) {
-        final StringBuilder sql = new StringBuilder("UPDATE posts SET \"message\" = ?");
-        List<PostModel> posts = getPostFromDb(id);
+                if (relation.equals("forum")) {
+                    forum = jdbcTemplate.queryForObject(ForumQueries.getForumQuery(), new Object[]{post.getForum()}, ForumService::read);
+                }
 
-        if (posts.isEmpty()) {
-            return posts;
+                if (relation.equals("thread")) {
+                    thread = jdbcTemplate.queryForObject(ThreadQueries.getThreadQuery(String.valueOf(post.getThread())),
+                            new Object[]{post.getThread()}, ThreadService::read);
+                }
+            }
         }
 
-        if (!Objects.equals(post.getMessage(), posts.get(0).getMessage())) {
-            sql.append(", isEdited = TRUE");
+        return new PostDetailsModel(user, forum, post, thread);
+    }
+
+    public final PostModel updatePost(final String message, final Integer id) {
+        final PostModel post = getPost(id);
+        final StringBuilder sql = new StringBuilder("UPDATE posts SET message = ?");
+
+        if (!message.equals(post.getMessage())) {
+            sql.append(", is_edited = TRUE");
+            post.setIsEdited(true);
+            post.setMessage(message);
         }
 
         sql.append(" WHERE id = ?");
-        jdbcTemplate.update(sql.toString(), post.getMessage(), id);
-
-        return getPostFromDb(id);
+        jdbcTemplate.update(sql.toString(), message, id);
+        return post;
     }
-
-    /**
-     * @brief Serialize database row into PostModel object.
-     */
 
     public static PostModel read(ResultSet rs, int rowNum) throws SQLException {
         final Timestamp timestamp = rs.getTimestamp("created");
