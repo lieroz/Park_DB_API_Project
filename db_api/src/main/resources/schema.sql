@@ -3,6 +3,13 @@ DROP TABLE IF EXISTS threads CASCADE;
 DROP TABLE IF EXISTS forums CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
+DROP INDEX IF EXISTS forums_user_id_idx;
+DROP INDEX IF EXISTS threads_user_id_idx;
+DROP INDEX IF EXISTS threads_forum_id_idx;
+DROP INDEX IF EXISTS posts_user_id_idx;
+DROP INDEX IF EXISTS posts_forum_id_idx;
+DROP INDEX IF EXISTS posts_thread_id_idx;
+
 CREATE EXTENSION IF NOT EXISTS CITEXT;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -22,6 +29,8 @@ CREATE TABLE IF NOT EXISTS forums (
   title   TEXT                                            NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS forums_user_id_idx ON forums(user_id);
+
 CREATE TABLE IF NOT EXISTS threads (
   user_id  INTEGER REFERENCES users (id) ON DELETE CASCADE  NOT NULL,
   created  TIMESTAMPTZ DEFAULT NOW(),
@@ -33,6 +42,9 @@ CREATE TABLE IF NOT EXISTS threads (
   votes    INTEGER     DEFAULT 0
 );
 
+CREATE INDEX IF NOT EXISTS threads_user_id_idx ON threads(user_id);
+CREATE INDEX IF NOT EXISTS threads_forum_id_idx ON threads(forum_id);
+
 CREATE TABLE IF NOT EXISTS posts (
   user_id   INTEGER REFERENCES users (id) ON DELETE CASCADE   NOT NULL,
   created   TIMESTAMPTZ DEFAULT NOW(),
@@ -43,6 +55,10 @@ CREATE TABLE IF NOT EXISTS posts (
   parent    INTEGER     DEFAULT 0,
   thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts(user_id);
+CREATE INDEX IF NOT EXISTS posts_forum_id_idx ON posts(forum_id);
+CREATE INDEX IF NOT EXISTS posts_thread_id_idx ON posts(thread_id);
 
 ALTER TABLE users
   ADD thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE;
