@@ -3,6 +3,7 @@ package db_project.controllers;
 import db_project.models.*;
 import db_project.services.ThreadService;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -38,8 +39,10 @@ public class ThreadController {
             }
 
             service.createPosts(posts, slug_or_id);
+        } catch (EmptyResultDataAccessException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
-        } catch (DuplicateKeyException ex) {
+        } catch (DuplicateKeyException | DataRetrievalFailureException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
 
         } catch (DataAccessException ex) {

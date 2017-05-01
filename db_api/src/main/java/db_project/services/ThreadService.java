@@ -6,6 +6,7 @@ import db_project.models.VoteModel;
 import db_project.services.queries.ThreadQueries;
 import db_project.services.queries.UserQueries;
 import db_project.views.ForumSimpleView;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,10 @@ public class ThreadService {
 
             jdbcTemplate.update(ThreadQueries.createPostsQuery(), post.getAuthor(), created, forumSimpleView.getForumId(),
                     post.getMessage(), post.getParent(), threadId);
+
+            if (jdbcTemplate.queryForObject(ThreadQueries.checkPostParentQuery(), Integer.class, postId) == null) {
+                throw new DataRetrievalFailureException(null);
+            }
         }
 
         jdbcTemplate.update(ThreadQueries.updateForumsPostsCount(), posts.size(), forumSimpleView.getForumId());

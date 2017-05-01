@@ -19,6 +19,10 @@ public class ThreadQueries {
                 "(SELECT id FROM users WHERE nickname = ?), ?, ?, ?, ?, ?)";
     }
 
+    public static String checkPostParentQuery() {
+        return "SELECT * FROM check_post_parent(?)";
+    }
+
     public static String updateForumsPostsCount() {
         return "UPDATE forums SET posts = posts + ? WHERE forums.id = ?";
     }
