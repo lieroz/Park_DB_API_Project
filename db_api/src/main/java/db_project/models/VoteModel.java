@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by lieroz on 3.03.17.
  */
-
 public class VoteModel {
     private String nickname;
     private Integer voice;

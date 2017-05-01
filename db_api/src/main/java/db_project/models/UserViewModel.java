@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by lieroz on 23.02.17.
  */
-
 public class UserViewModel {
     private String about;
     private String email;

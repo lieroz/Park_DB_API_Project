@@ -3,14 +3,11 @@ package db_project.controllers;
 import db_project.models.*;
 import db_project.services.PostService;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Created by lieroz on 4.03.17.

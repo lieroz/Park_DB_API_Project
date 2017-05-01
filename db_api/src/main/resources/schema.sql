@@ -81,6 +81,7 @@ BEGIN
     RETURN result;
   END IF;
 
+  DELETE FROM posts WHERE id = post_id;
   RETURN NULL;
 END;
 '

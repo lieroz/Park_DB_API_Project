@@ -10,13 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Created by lieroz on 4.03.17.
  */
-
 @RestController
 @RequestMapping("/api/service")
 class ServiceController {
-    /**
-     * @brief Class used for communication with database.
-     */
     private final JdbcTemplate jdbcTemplate;
 
     public ServiceController(final JdbcTemplate jdbcTemplate) {

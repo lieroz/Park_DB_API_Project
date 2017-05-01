@@ -8,7 +8,6 @@ import java.util.List;
 /**
  * Created by lieroz on 8.03.17.
  */
-
 public class PostsMarkerModel {
     private List<PostModel> posts;
     private String marker;

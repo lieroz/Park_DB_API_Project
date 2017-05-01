@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by lieroz on 4.03.17.
  */
-
 public class ServiceModel {
     private Integer forum;
     private Integer post;

@@ -3,21 +3,10 @@ package db_project.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.LocalDateTime;
-
 /**
  * Created by lieroz on 28.02.17.
  */
-
-/**
- * @brief Model representing Post in database.
- */
-
 public class PostModel {
-    /**
-     * @brief Fields which represent info about post.
-     */
-
     private String author;
     private String created;
     private String forum;
@@ -26,10 +15,6 @@ public class PostModel {
     private String message;
     private Integer parent;
     private Integer thread;
-
-    /**
-     * @brief Constructor that serializes object into JSON.
-     */
 
     @JsonCreator
     public PostModel(
@@ -52,10 +37,6 @@ public class PostModel {
         this.thread = thread;
     }
 
-    /**
-     * @brief Copy Constructor.
-     */
-
     public PostModel(final PostModel other) {
         this.author = author;
         this.created = created;
@@ -66,11 +47,6 @@ public class PostModel {
         this.parent = parent;
         this.thread = thread;
     }
-
-    /**
-     * @brief Getters and setters.
-     * @brief Getters are need for object serialization into JSON.
-     */
 
     public final String getAuthor() {
         return this.author;

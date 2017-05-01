@@ -9,7 +9,6 @@ import db_project.views.ForumSimpleView;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.sql.ResultSet;
@@ -30,7 +29,6 @@ public class ThreadService {
 
     private static Integer postId = 0;
 
-    @Transactional
     public final void createPosts(final List<PostModel> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
@@ -85,7 +83,6 @@ public class ThreadService {
         jdbcTemplate.update(sql.toString(), args.toArray());
     }
 
-    @Transactional
     public final ThreadModel updateThreadVotes(final VoteModel vote, final String slug_or_id) {
         jdbcTemplate.queryForObject(UserQueries.getUserQuery(), new Object[]{vote.getNickname(), null}, UserService::read);
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :

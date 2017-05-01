@@ -6,25 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by lieroz on 27.02.17.
  */
-
-/**
- * @brief Model representing Forum in database.
- */
-
 public class ForumModel {
-    /**
-     * @brief Fields which represent info about forum.
-     */
-
     private Integer posts;
     private String slug;
     private Integer threads;
     private String title;
     private String user;
-
-    /**
-     * @brief Constructor that serializes object into JSON.
-     */
 
     @JsonCreator
     public ForumModel(
@@ -41,10 +28,6 @@ public class ForumModel {
         this.user = user;
     }
 
-    /**
-     * @brief Copy Constructor.
-     */
-
     public ForumModel(final ForumModel other) {
         this.posts = other.getPosts();
         this.slug = other.getSlug();
@@ -52,11 +35,6 @@ public class ForumModel {
         this.title = other.getTitle();
         this.user = other.getUser();
     }
-
-    /**
-     * @brief Getters and setters.
-     * @brief Getters are need for object serialization into JSON.
-     */
 
     public final Integer getPosts() {
         return this.posts;
