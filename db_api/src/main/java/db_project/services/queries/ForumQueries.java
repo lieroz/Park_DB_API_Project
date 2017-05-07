@@ -17,12 +17,12 @@ public class ForumQueries {
 
     public static String createThreadWithTimeQuery() {
         return "INSERT INTO threads (user_id, created, forum_id, message, slug, title) " +
-                "  VALUES((SELECT id FROM users WHERE nickname = ?), ?, (SELECT id FROM forums WHERE slug = ?), ?, ?, ?)";
+                "  VALUES((SELECT id FROM users WHERE nickname = ?), ?, (SELECT id FROM forums WHERE slug = ?), ?, ?, ?) RETURNING id";
     }
 
     public static String createThreadWithoutTimeQuery() {
         return "INSERT INTO threads (user_id, forum_id, message, slug, title) " +
-                "  VALUES((SELECT id FROM users WHERE nickname = ?), (SELECT id FROM forums WHERE slug = ?), ?, ?, ?)";
+                "  VALUES((SELECT id FROM users WHERE nickname = ?), (SELECT id FROM forums WHERE slug = ?), ?, ?, ?) RETURNING id";
     }
 
     public static String updateThreadsCount() {

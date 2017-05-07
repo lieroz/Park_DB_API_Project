@@ -18,7 +18,6 @@ import java.util.List;
 @Service
 final public class ForumService {
     private final JdbcTemplate jdbcTemplate;
-    private static Integer threadId = 0;
 
     public ForumService(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -34,13 +33,15 @@ final public class ForumService {
 
     public final ThreadModel createThread(final String author, final String created, final String forum, final String message,
                                           final String slug, final String title) {
-        ++threadId;
+        final Integer threadId;
 
         if (created != null) {
-            jdbcTemplate.update(ForumQueries.createThreadWithTimeQuery(), author, created, forum, message, slug, title);
+            threadId = jdbcTemplate.queryForObject(ForumQueries.createThreadWithTimeQuery(),
+                    new Object[]{author, created, forum, message, slug, title}, Integer.class);
 
         } else {
-            jdbcTemplate.update(ForumQueries.createThreadWithoutTimeQuery(), author, forum, message, slug, title);
+            threadId = jdbcTemplate.queryForObject(ForumQueries.createThreadWithoutTimeQuery(),
+                    new Object[]{author, forum, message, slug, title}, Integer.class);
         }
 
         jdbcTemplate.update(ForumQueries.updateThreadsCount(), forum);

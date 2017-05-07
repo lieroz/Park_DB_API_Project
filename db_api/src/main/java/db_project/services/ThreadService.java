@@ -27,8 +27,6 @@ public class ThreadService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private static Integer postId = 0;
-
     public final void createPosts(final List<PostModel> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
@@ -39,13 +37,13 @@ public class ThreadService {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         for (PostModel post : posts) {
+            final Integer postId = jdbcTemplate.queryForObject(ThreadQueries.createPostsQuery(),
+                    new Object[]{post.getAuthor(), created, forumSimpleView.getForumId(), post.getMessage(), post.getParent(), threadId}, Integer.class);
+
             post.setCreated(dateFormat.format(created));
             post.setForum(forumSimpleView.getForumSlug());
-            post.setId(++postId);
+            post.setId(postId);
             post.setThread(threadId);
-
-            jdbcTemplate.update(ThreadQueries.createPostsQuery(), post.getAuthor(), created, forumSimpleView.getForumId(),
-                    post.getMessage(), post.getParent(), threadId);
 
             if (jdbcTemplate.queryForObject(ThreadQueries.checkPostParentQuery(), Integer.class, postId) == null) {
                 throw new DataRetrievalFailureException(null);
