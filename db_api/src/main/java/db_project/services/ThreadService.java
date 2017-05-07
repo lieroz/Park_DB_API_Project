@@ -32,8 +32,8 @@ public class ThreadService {
     public final void createPosts(final List<PostModel> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
-        final ForumSimpleView forumSimpleView = jdbcTemplate.queryForObject(ThreadQueries.getForumIdAndSlugQuery(slug_or_id),
-                new Object[]{slug_or_id}, (rs, rowNum) -> new ForumSimpleView(rs.getString("slug"), rs.getInt("id")));
+        final ForumSimpleView forumSimpleView = jdbcTemplate.queryForObject(ThreadQueries.getForumIdAndSlugQuery(),
+                new Object[]{threadId}, (rs, rowNum) -> new ForumSimpleView(rs.getString("slug"), rs.getInt("id")));
         final Timestamp created = new Timestamp(System.currentTimeMillis());
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

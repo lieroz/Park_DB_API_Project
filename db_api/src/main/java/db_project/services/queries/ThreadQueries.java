@@ -4,10 +4,10 @@ package db_project.services.queries;
  * Created by lieroz on 28.04.17.
  */
 public class ThreadQueries {
-    public static String getForumIdAndSlugQuery(final String slug_or_id) {
+    public static String getForumIdAndSlugQuery() {
         return "SELECT forums.id, forums.slug FROM forums " +
                 "JOIN threads ON (threads.forum_id = forums.id) " +
-                "WHERE " + (slug_or_id.matches("\\d+") ? "threads.id = ?" : "threads.slug = ?");
+                "WHERE threads.id = ?";
     }
 
     public static String getThreadId() {
