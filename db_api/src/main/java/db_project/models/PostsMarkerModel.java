@@ -17,7 +17,7 @@ public class PostsMarkerModel {
             @JsonProperty("marker") final String marker,
             @JsonProperty("posts") final List<PostModel> posts
     ) {
-        this.marker = marker == null ? "some marker" : marker;
+        this.marker = marker;
         this.posts = posts;
     }
 

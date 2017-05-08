@@ -25,7 +25,7 @@ public class ThreadService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public final List<PostModel> createPosts(final List<PostModel> posts, final String slug_or_id) {
+    public final void createPosts(final List<PostModel> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
         final ForumSimpleView forumSimpleView = jdbcTemplate.queryForObject(ThreadQueries.getForumIdAndSlugQuery(),
@@ -34,7 +34,6 @@ public class ThreadService {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        List<PostModel> newPosts = new ArrayList<>();
         try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(ThreadQueries.createPostsQuery(), Statement.NO_GENERATED_KEYS);
 
@@ -52,7 +51,6 @@ public class ThreadService {
 
                 post.setCreated(dateFormat.format(created));
                 post.setId(postId);
-                newPosts.add(post);
             }
 
             preparedStatement.executeBatch();
@@ -63,7 +61,6 @@ public class ThreadService {
         }
 
         jdbcTemplate.update(ThreadQueries.updateForumsPostsCount(), posts.size(), forumSimpleView.getForumId());
-        return newPosts;
     }
 
     public final ThreadModel getThreadInfo(final String slug_or_id) {

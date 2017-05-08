@@ -35,8 +35,6 @@ public class ThreadController {
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<PostModel>> createPosts(@RequestBody List<PostModel> posts,
                                                              @PathVariable(value = "slug_or_id") final String slug_or_id) {
-        List<PostModel> newPosts;
-
         try {
             ThreadModel thread = service.getThreadInfo(slug_or_id);
 
@@ -64,7 +62,7 @@ public class ThreadController {
                 post.setThread(thread.getId());
             }
 
-            newPosts = service.createPosts(posts, slug_or_id);
+            service.createPosts(posts, slug_or_id);
         } catch (EmptyResultDataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
@@ -75,7 +73,7 @@ public class ThreadController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(newPosts);
+        return ResponseEntity.status(HttpStatus.CREATED).body(posts);
     }
 
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -143,26 +141,24 @@ public class ThreadController {
         return ResponseEntity.status(HttpStatus.OK).body(thread);
     }
 
-    private static Integer offset = 0;
-
     @RequestMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<PostsMarkerModel> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
-            @RequestParam(value = "marker", required = false) final String marker,
+            @RequestParam(value = "marker", required = false) String marker,
             @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,
             @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
             @PathVariable("slug_or_id") final String slug_or_id) {
-        if (marker == null && offset != 0) {
-            offset = 0;
+        if (marker == null) {
+            marker = "0";
         }
 
-        final List<PostModel> posts = service.getSortedPosts(limit, offset, sort, desc, slug_or_id);
-        offset += limit;
+        final List<PostModel> posts = service.getSortedPosts(limit, Integer.parseInt(marker), sort, desc, slug_or_id);
 
-        if (posts.isEmpty() && marker == null) {
+        if (posts.isEmpty() && marker.equals("0")) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(new PostsMarkerModel(marker, posts));
+        return ResponseEntity.status(HttpStatus.OK).body(new PostsMarkerModel(
+                !posts.isEmpty() ? String.valueOf(Integer.parseInt(marker) + limit) : marker, posts));
     }
 }
