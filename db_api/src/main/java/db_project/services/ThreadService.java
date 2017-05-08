@@ -10,9 +10,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -27,7 +25,7 @@ public class ThreadService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public final void createPosts(final List<PostModel> posts, final String slug_or_id) {
+    public final List<PostModel> createPosts(final List<PostModel> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 jdbcTemplate.queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
         final ForumSimpleView forumSimpleView = jdbcTemplate.queryForObject(ThreadQueries.getForumIdAndSlugQuery(),
@@ -36,21 +34,36 @@ public class ThreadService {
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        for (PostModel post : posts) {
-            final Integer postId = jdbcTemplate.queryForObject(ThreadQueries.createPostsQuery(),
-                    new Object[]{post.getAuthor(), created, forumSimpleView.getForumId(), post.getMessage(), post.getParent(), threadId}, Integer.class);
+        List<PostModel> newPosts = new ArrayList<>();
+        try (Connection connection = jdbcTemplate.getDataSource().getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(ThreadQueries.createPostsQuery(), Statement.NO_GENERATED_KEYS);
 
-            post.setCreated(dateFormat.format(created));
-            post.setForum(forumSimpleView.getForumSlug());
-            post.setId(postId);
-            post.setThread(threadId);
+            for (PostModel post : posts) {
+                final Integer postId = jdbcTemplate.queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
 
-            if (jdbcTemplate.queryForObject(ThreadQueries.checkPostParentQuery(), Integer.class, postId) == null) {
-                throw new DataRetrievalFailureException(null);
+                preparedStatement.setString(1, post.getAuthor());
+                preparedStatement.setTimestamp(2, created);
+                preparedStatement.setInt(3, forumSimpleView.getForumId());
+                preparedStatement.setInt(4, postId);
+                preparedStatement.setString(5, post.getMessage());
+                preparedStatement.setInt(6, post.getParent());
+                preparedStatement.setInt(7, threadId);
+                preparedStatement.addBatch();
+
+                post.setCreated(dateFormat.format(created));
+                post.setId(postId);
+                newPosts.add(post);
             }
+
+            preparedStatement.executeBatch();
+            preparedStatement.close();
+
+        } catch (SQLException ex) {
+            throw new DataRetrievalFailureException(null);
         }
 
         jdbcTemplate.update(ThreadQueries.updateForumsPostsCount(), posts.size(), forumSimpleView.getForumId());
+        return newPosts;
     }
 
     public final ThreadModel getThreadInfo(final String slug_or_id) {

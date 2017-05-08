@@ -15,8 +15,8 @@ public class ThreadQueries {
     }
 
     public static String createPostsQuery() {
-        return "INSERT INTO posts (user_id, created, forum_id, message, parent, thread_id) VALUES(" +
-                "(SELECT id FROM users WHERE nickname = ?), ?, ?, ?, ?, ?) RETURNING id";
+        return "INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id) VALUES(" +
+                "(SELECT id FROM users WHERE nickname = ?), ?, ?, ?, ?, ?, ?)";
     }
 
     public static String checkPostParentQuery() {

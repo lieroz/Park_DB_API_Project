@@ -1,6 +1,7 @@
 package db_project.controllers;
 
 import db_project.models.*;
+import db_project.services.PostService;
 import db_project.services.ThreadService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -22,34 +23,59 @@ import java.util.List;
 public class ThreadController {
     private final JdbcTemplate jdbcTemplate;
     private final ThreadService service;
+    private final PostService postSerice;
 
     public ThreadController(final JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.service = new ThreadService(jdbcTemplate);
+        this.postSerice = new PostService(jdbcTemplate);
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public final ResponseEntity<List<PostModel>> createPosts(@RequestBody List<PostModel> posts,
                                                              @PathVariable(value = "slug_or_id") final String slug_or_id) {
-        try {
+        List<PostModel> newPosts;
 
-            if (posts.isEmpty()) {
+        try {
+            ThreadModel thread = service.getThreadInfo(slug_or_id);
+
+            if (posts.isEmpty() || thread == null) {
                 throw new EmptyResultDataAccessException(0);
             }
 
-            service.createPosts(posts, slug_or_id);
+            for (PostModel post : posts) {
+                if (post.getParent() != 0) {
+
+                    try {
+                        PostModel parent = postSerice.getPost(post.getParent());
+                        post.setForum(thread.getForum());
+                        post.setThread(thread.getId());
+
+                        if (!thread.getId().equals(parent.getThread())) {
+                            throw new DuplicateKeyException(null);
+                        }
+                    } catch (DataAccessException ex) {
+                        throw new DuplicateKeyException(null);
+                    }
+                }
+
+                post.setForum(thread.getForum());
+                post.setThread(thread.getId());
+            }
+
+            newPosts = service.createPosts(posts, slug_or_id);
         } catch (EmptyResultDataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
-        } catch (DuplicateKeyException | DataRetrievalFailureException ex) {
+        } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
 
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(posts);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newPosts);
     }
 
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
