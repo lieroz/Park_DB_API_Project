@@ -75,6 +75,7 @@ final public class ForumService {
         final StringBuilder sql = new StringBuilder(ForumQueries.getUsersByForumQuery());
         final List<Object> args = new ArrayList<>();
         args.add(slug);
+        args.add(slug);
 
         if (since != null) {
             sql.append(" AND u.nickname ");

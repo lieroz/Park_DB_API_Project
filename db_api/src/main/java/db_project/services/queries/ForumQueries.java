@@ -54,21 +54,24 @@ public class ForumQueries {
     }
 
     public static String getUsersByForumQuery() {
-        return "SELECT u.about, u.email, u.fullname, u.nickname " +
-                "FROM (" +
+        return "SELECT" +
+                "  u.about," +
+                "  u.email," +
+                "  u.fullname," +
+                "  u.nickname " +
+                "FROM users u " +
+                "WHERE u.id IN (" +
                 "  SELECT DISTINCT" +
-                "    t.user_id," +
-                "    f1.slug" +
+                "    t.user_id" +
                 "  FROM forums f1" +
                 "    JOIN threads t ON (t.forum_id = f1.id)" +
+                "  WHERE f1.slug = ?" +
                 "  UNION ALL" +
                 "  SELECT DISTINCT" +
-                "    p.user_id," +
-                "    f2.slug" +
+                "    p.user_id" +
                 "  FROM forums f2" +
                 "    JOIN posts p ON (p.forum_id = f2.id)" +
-                ") i " +
-                "JOIN users u ON (u.id = i.user_id) " +
-                "WHERE i.slug = ?";
+                "  WHERE f2.slug = ?" +
+                ")";
     }
 }
