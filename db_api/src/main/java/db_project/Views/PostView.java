@@ -1,12 +1,11 @@
-package db_project.models;
+package db_project.Views;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 28.02.17.
+ * Created by lieroz on 9.05.17.
  */
-public class PostModel {
+public class PostView {
     private String author;
     private String created;
     private String forum;
@@ -16,17 +15,14 @@ public class PostModel {
     private Integer parent;
     private Integer thread;
 
-    @JsonCreator
-    public PostModel(
-            @JsonProperty("author") final String author,
-            @JsonProperty("created") final String created,
-            @JsonProperty("forum") final String forum,
-            @JsonProperty("id") final Integer id,
-            @JsonProperty("isEdited") final Boolean isEdited,
-            @JsonProperty("message") final String message,
-            @JsonProperty("parent") final Integer parent,
-            @JsonProperty("thread") final Integer thread
-    ) {
+    public PostView(@JsonProperty("author") final String author,
+                    @JsonProperty("created") final String created,
+                    @JsonProperty("forum") final String forum,
+                    @JsonProperty("id") final Integer id,
+                    @JsonProperty("isEdited") final Boolean isEdited,
+                    @JsonProperty("message") final String message,
+                    @JsonProperty("parent") final Integer parent,
+                    @JsonProperty("thread") final Integer thread) {
         this.author = author;
         this.created = created;
         this.forum = forum;
@@ -34,17 +30,6 @@ public class PostModel {
         this.isEdited = isEdited;
         this.message = message;
         this.parent = parent == null ? 0 : parent;
-        this.thread = thread;
-    }
-
-    public PostModel(final PostModel other) {
-        this.author = author;
-        this.created = created;
-        this.forum = forum;
-        this.id = id;
-        this.isEdited = isEdited;
-        this.message = message;
-        this.parent = parent;
         this.thread = thread;
     }
 

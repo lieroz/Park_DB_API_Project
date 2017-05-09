@@ -1,12 +1,11 @@
-package db_project.models;
+package db_project.Views;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 27.02.17.
+ * Created by lieroz on 9.05.17.
  */
-public class ThreadModel {
+public class ThreadView {
     private String author;
     private String created;
     private String forum;
@@ -16,17 +15,14 @@ public class ThreadModel {
     private String title;
     private Integer votes;
 
-    @JsonCreator
-    public ThreadModel(
-            @JsonProperty("author") final String author,
-            @JsonProperty("created") final String created,
-            @JsonProperty("forum") final String forum,
-            @JsonProperty("id") final Integer id,
-            @JsonProperty("message") final String message,
-            @JsonProperty("slug") final String slug,
-            @JsonProperty("title") final String title,
-            @JsonProperty("votes") final Integer votes
-    ) {
+    public ThreadView(@JsonProperty("author") final String author,
+                      @JsonProperty("created") final String created,
+                      @JsonProperty("forum") final String forum,
+                      @JsonProperty("id") final Integer id,
+                      @JsonProperty("message") final String message,
+                      @JsonProperty("slug") final String slug,
+                      @JsonProperty("title") final String title,
+                      @JsonProperty("votes") final Integer votes) {
         this.author = author;
         this.created = created;
         this.forum = forum;
@@ -35,17 +31,6 @@ public class ThreadModel {
         this.slug = slug;
         this.title = title;
         this.votes = votes;
-    }
-
-    public ThreadModel(final ThreadModel other) {
-        this.author = other.getAuthor();
-        this.created = other.getCreated();
-        this.forum = other.getForum();
-        this.id = other.getId();
-        this.message = other.getMessage();
-        this.slug = other.getSlug();
-        this.title = other.getTitle();
-        this.votes = other.getVotes();
     }
 
     public final String getAuthor() {

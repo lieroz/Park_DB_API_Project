@@ -1,24 +1,20 @@
-package db_project.models;
+package db_project.Views;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 4.03.17.
+ * Created by lieroz on 9.05.17.
  */
-public class ServiceModel {
+public class StatusView {
     private Integer forum;
     private Integer post;
     private Integer thread;
     private Integer user;
 
-    @JsonCreator
-    public ServiceModel(
-            @JsonProperty("forum") final Integer forum,
-            @JsonProperty("post") final Integer post,
-            @JsonProperty("thread") final Integer thread,
-            @JsonProperty("user") final Integer user
-    ) {
+    public StatusView(@JsonProperty("forum") final Integer forum,
+                      @JsonProperty("post") final Integer post,
+                      @JsonProperty("thread") final Integer thread,
+                      @JsonProperty("user") final Integer user) {
         this.forum = forum;
         this.post = post;
         this.thread = thread;

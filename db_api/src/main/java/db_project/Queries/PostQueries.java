@@ -1,4 +1,4 @@
-package db_project.services.queries;
+package db_project.Queries;
 
 /**
  * Created by lieroz on 1.05.17.

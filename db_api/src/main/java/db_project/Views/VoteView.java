@@ -1,27 +1,18 @@
-package db_project.models;
+package db_project.Views;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 3.03.17.
+ * Created by lieroz on 9.05.17.
  */
-public class VoteModel {
+public class VoteView {
     private String nickname;
     private Integer voice;
 
-    @JsonCreator
-    public VoteModel(
-            @JsonProperty("nickname") final String nickname,
-            @JsonProperty("voice") final Integer voice
-    ) {
+    public VoteView(@JsonProperty("nickname") final String nickname,
+                    @JsonProperty("voice") final Integer voice) {
         this.nickname = nickname;
         this.voice = voice;
-    }
-
-    public VoteModel(final VoteModel other) {
-        this.nickname = other.getNickname();
-        this.voice = other.getVoice();
     }
 
     public final String getNickname() {

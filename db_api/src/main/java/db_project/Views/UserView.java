@@ -1,24 +1,20 @@
-package db_project.models;
+package db_project.Views;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 23.02.17.
+ * Created by lieroz on 9.05.17.
  */
-public class UserViewModel {
+public class UserView {
     private String about;
     private String email;
     private String fullname;
     private String nickname;
 
-    @JsonCreator
-    public UserViewModel(
-            @JsonProperty("about") final String about,
-            @JsonProperty("email") final String email,
-            @JsonProperty("fullname") final String fullname,
-            @JsonProperty("nickname") final String nickname
-    ) {
+    public UserView(@JsonProperty("about") final String about,
+                    @JsonProperty("email") final String email,
+                    @JsonProperty("fullname") final String fullname,
+                    @JsonProperty("nickname") final String nickname) {
         this.about = about;
         this.email = email;
         this.fullname = fullname;

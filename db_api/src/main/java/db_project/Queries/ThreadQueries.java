@@ -1,11 +1,11 @@
-package db_project.services.queries;
+package db_project.Queries;
 
 /**
  * Created by lieroz on 28.04.17.
  */
 public class ThreadQueries {
     public static String getForumIdAndSlugQuery() {
-        return "SELECT forums.id, forums.slug FROM forums " +
+        return "SELECT forums.id FROM forums " +
                 "JOIN threads ON (threads.forum_id = forums.id) " +
                 "WHERE threads.id = ?";
     }

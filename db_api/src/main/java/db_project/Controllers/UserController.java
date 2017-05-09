@@ -1,7 +1,6 @@
-package db_project.controllers;
+package db_project.Controllers;
 
-import db_project.models.UserViewModel;
-import db_project.services.UserService;
+import db_project.Views.UserView;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -17,81 +16,52 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/api/user/{nickname}")
-public final class UserController {
-    private final JdbcTemplate jdbcTemplate;
-    private final UserService service;
-
-    public UserController(final JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.service = new UserService(jdbcTemplate);
-    }
-
-    @RequestMapping(value = "/create",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<Object> createUser(
-            @RequestBody UserViewModel user,
-            @PathVariable(value = "nickname") String nickname
-    ) {
+public final class UserController extends InferiorController {
+    @RequestMapping(value = "/create", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<Object> createUser(@RequestBody UserView user,
+                                                   @PathVariable(value = "nickname") String nickname) {
         try {
-            service.createUser(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
-
+            jdbcUserDAO.insert(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(service.getUsers(nickname, user.getEmail()));
-
+                    .body(jdbcUserDAO.findManyByNickOrMail(nickname, user.getEmail()));
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-
         user.setNickname(nickname);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserViewModel> viewProfile(
-            @PathVariable(value = "nickname") String nickname
-    ) {
-        final UserViewModel user;
-
+    public final ResponseEntity<UserView> viewProfile(@PathVariable(value = "nickname") String nickname) {
+        final UserView user;
         try {
-            user = service.getUser(nickname, null);
-
+            user = jdbcUserDAO.findSingleByNickOrMail(nickname, null);
             if (user == null) {
                 throw new EmptyResultDataAccessException(0);
             }
-
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 
-    @RequestMapping(value = "/profile",
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserViewModel> modifyProfile(
-            @RequestBody UserViewModel user,
-            @PathVariable(value = "nickname") String nickname
-    ) {
+    @RequestMapping(value = "/profile", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public final ResponseEntity<UserView> modifyProfile(@RequestBody UserView user,
+                                                        @PathVariable(value = "nickname") String nickname) {
         try {
-            service.updateUser(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
-            user = service.getUser(nickname, user.getEmail());
-
+            jdbcUserDAO.update(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+            user = jdbcUserDAO.findSingleByNickOrMail(nickname, user.getEmail());
             if (user == null) {
                 throw new EmptyResultDataAccessException(0);
             }
-
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
 }
