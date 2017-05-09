@@ -1,21 +1,11 @@
-package db_project.models;
+package db_project.Views;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by lieroz on 27.02.17.
+ * Created by lieroz on 9.05.17.
  */
-
-/**
- * @brief Model representing Thread in database.
- */
-
-public class ThreadModel {
-    /**
-     * @brief Fields which represent info about thread.
-     */
-
+public class ThreadView {
     private String author;
     private String created;
     private String forum;
@@ -25,21 +15,14 @@ public class ThreadModel {
     private String title;
     private Integer votes;
 
-    /**
-     * @brief Constructor that serializes object into JSON.
-     */
-
-    @JsonCreator
-    public ThreadModel(
-            @JsonProperty("author") final String author,
-            @JsonProperty("created") final String created,
-            @JsonProperty("forum") final String forum,
-            @JsonProperty("id") final Integer id,
-            @JsonProperty("message") final String message,
-            @JsonProperty("slug") final String slug,
-            @JsonProperty("title") final String title,
-            @JsonProperty("votes") final Integer votes
-    ) {
+    public ThreadView(@JsonProperty("author") final String author,
+                      @JsonProperty("created") final String created,
+                      @JsonProperty("forum") final String forum,
+                      @JsonProperty("id") final Integer id,
+                      @JsonProperty("message") final String message,
+                      @JsonProperty("slug") final String slug,
+                      @JsonProperty("title") final String title,
+                      @JsonProperty("votes") final Integer votes) {
         this.author = author;
         this.created = created;
         this.forum = forum;
@@ -49,26 +32,6 @@ public class ThreadModel {
         this.title = title;
         this.votes = votes;
     }
-
-    /**
-     * @brief Copy Constructor.
-     */
-
-    public ThreadModel(final ThreadModel other) {
-        this.author = other.getAuthor();
-        this.created = other.getCreated();
-        this.forum = other.getForum();
-        this.id = other.getId();
-        this.message = other.getMessage();
-        this.slug = other.getSlug();
-        this.title = other.getTitle();
-        this.votes = other.getVotes();
-    }
-
-    /**
-     * @brief Getters and setters.
-     * @brief Getters are need for object serialization into JSON.
-     */
 
     public final String getAuthor() {
         return this.author;
