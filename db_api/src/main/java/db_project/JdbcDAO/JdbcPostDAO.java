@@ -28,13 +28,13 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     public final void create(final List<PostView> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 getJdbcTemplate().queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
-        final Integer forumId = getJdbcTemplate().queryForObject(ThreadQueries.getForumIdAndSlugQuery(), Integer.class, threadId);
+        final Integer forumId = getJdbcTemplate().queryForObject(ThreadQueries.getForumIdQuery(), Integer.class, threadId);
         final Timestamp created = new Timestamp(System.currentTimeMillis());
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         try (Connection connection = getJdbcTemplate().getDataSource().getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(ThreadQueries.createPostsQuery(), Statement.NO_GENERATED_KEYS);
+            PreparedStatement preparedStatement = connection.prepareStatement(PostQueries.createPostsQuery(), Statement.NO_GENERATED_KEYS);
 
             for (PostView post : posts) {
                 final Integer postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
@@ -87,7 +87,7 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
             for (String relation : related) {
                 switch (relation) {
                     case "user":
-                        user = getJdbcTemplate().queryForObject(UserQueries.getUserQuery(),
+                        user = getJdbcTemplate().queryForObject(UserQueries.findUserQuery(),
                                 new Object[]{post.getAuthor(), null}, readUser);
                         break;
                     case "forum":
@@ -108,13 +108,13 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
                                      final Boolean desc, final String slug_or_id) {
         switch (sort) {
             case "flat":
-                return getJdbcTemplate().query(ThreadQueries.postsFlatSortQuery(slug_or_id, desc),
+                return getJdbcTemplate().query(PostQueries.postsFlatSortQuery(slug_or_id, desc),
                         new Object[]{slug_or_id, limit, offset}, readPost);
             case "tree":
-                return getJdbcTemplate().query(ThreadQueries.postsTreeSortQuery(slug_or_id, desc),
+                return getJdbcTemplate().query(PostQueries.postsTreeSortQuery(slug_or_id, desc),
                         new Object[]{slug_or_id, limit, offset}, readPost);
             case "parent_tree":
-                return getJdbcTemplate().query(ThreadQueries.postsParentTreeSortQuery(slug_or_id, desc),
+                return getJdbcTemplate().query(PostQueries.postsParentTreeSortQuery(slug_or_id, desc),
                         new Object[]{slug_or_id, limit, offset}, readPost);
             default:
                 throw new NullPointerException();
@@ -123,11 +123,11 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
 
     @Override
     public final Integer count() {
-        return getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM posts", Integer.class);
+        return getJdbcTemplate().queryForObject(PostQueries.countPostsQuery(), Integer.class);
     }
 
     @Override
     public final void clear() {
-        getJdbcTemplate().execute("DELETE FROM posts");
+        getJdbcTemplate().execute(PostQueries.clearTableQuery());
     }
 }

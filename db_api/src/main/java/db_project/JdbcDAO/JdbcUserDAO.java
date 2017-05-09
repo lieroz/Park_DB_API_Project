@@ -1,6 +1,7 @@
 package db_project.JdbcDAO;
 
 import db_project.DAO.UserDAO;
+import db_project.Queries.UserQueries;
 import db_project.Views.UserView;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,8 @@ public class JdbcUserDAO extends JdbcInferiorDAO implements UserDAO {
     }
 
     @Override
-    public final UserView insert(final String about, final String email, final String fullname, final String nickname) {
-        final String sql = "INSERT INTO users (about, email, fullname, nickname) VALUES(?, ?, ?, ?) RETURNING about, email, fullname, nickname";
-        return getJdbcTemplate().queryForObject(sql, new Object[]{about, email, fullname, nickname}, readUser);
+    public final void create(final String about, final String email, final String fullname, final String nickname) {
+        getJdbcTemplate().update(UserQueries.createUserQuery(), about, email, fullname, nickname);
     }
 
     @Override
@@ -49,23 +49,21 @@ public class JdbcUserDAO extends JdbcInferiorDAO implements UserDAO {
 
     @Override
     public final UserView findSingleByNickOrMail(final String nickname, final String email) {
-        final String sql = "SELECT * FROM users WHERE nickname = ? OR email = ?";
-        return getJdbcTemplate().queryForObject(sql, new Object[]{nickname, email}, readUser);
+        return getJdbcTemplate().queryForObject(UserQueries.findUserQuery(), new Object[]{nickname, email}, readUser);
     }
 
     @Override
     public final List<UserView> findManyByNickOrMail(final String nickname, final String email) {
-        final String sql = "SELECT * FROM users WHERE nickname = ? OR email = ?";
-        return getJdbcTemplate().query(sql, new Object[]{nickname, email}, readUser);
+        return getJdbcTemplate().query(UserQueries.findUserQuery(), new Object[]{nickname, email}, readUser);
     }
 
     @Override
     public final Integer count() {
-        return getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM users", Integer.class);
+        return getJdbcTemplate().queryForObject(UserQueries.countUsersQuery(), Integer.class);
     }
 
     @Override
     public final void clear() {
-        getJdbcTemplate().execute("DELETE FROM users");
+        getJdbcTemplate().execute(UserQueries.clearTableQuery());
     }
 }

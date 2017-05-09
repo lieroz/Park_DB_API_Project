@@ -3,11 +3,9 @@ package db_project.Controllers;
 import db_project.Views.UserView;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -22,7 +20,7 @@ public final class UserController extends InferiorController {
     public final ResponseEntity<Object> createUser(@RequestBody UserView user,
                                                    @PathVariable(value = "nickname") String nickname) {
         try {
-            jdbcUserDAO.insert(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
+            jdbcUserDAO.create(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(jdbcUserDAO.findManyByNickOrMail(nickname, user.getEmail()));
@@ -38,9 +36,6 @@ public final class UserController extends InferiorController {
         final UserView user;
         try {
             user = jdbcUserDAO.findSingleByNickOrMail(nickname, null);
-            if (user == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -54,9 +49,6 @@ public final class UserController extends InferiorController {
         try {
             jdbcUserDAO.update(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
             user = jdbcUserDAO.findSingleByNickOrMail(nickname, user.getEmail());
-            if (user == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } catch (DataAccessException ex) {

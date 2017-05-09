@@ -22,8 +22,7 @@ public class JdbcForumDAO extends JdbcInferiorDAO implements ForumDAO {
 
     @Override
     public final void create(String username, String slug, String title) {
-        final String sql = "INSERT INTO forums (user_id, slug, title) VALUES((SELECT id FROM users WHERE nickname = ?), ?, ?)";
-        getJdbcTemplate().update(sql, username, slug, title);
+        getJdbcTemplate().update(ForumQueries.createForumQuery(), username, slug, title);
     }
 
     @Override
@@ -59,7 +58,6 @@ public class JdbcForumDAO extends JdbcInferiorDAO implements ForumDAO {
             sql.append(desc == Boolean.TRUE ? "< ?" : "> ?");
             args.add(since);
         }
-        sql.append(" GROUP BY u.about, u.email, u.fullname, u.nickname");
         sql.append(" ORDER BY u.nickname COLLATE ucs_basic");
         sql.append(desc == Boolean.TRUE ? " DESC" : "");
         sql.append(" LIMIT ?");
@@ -69,11 +67,11 @@ public class JdbcForumDAO extends JdbcInferiorDAO implements ForumDAO {
 
     @Override
     public final Integer count() {
-        return getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM forums", Integer.class);
+        return getJdbcTemplate().queryForObject(ForumQueries.countForumsQuery(), Integer.class);
     }
 
     @Override
     public final void clear() {
-        getJdbcTemplate().execute("DELETE FROM forums");
+        getJdbcTemplate().execute(ForumQueries.clearTableQuery());
     }
 }

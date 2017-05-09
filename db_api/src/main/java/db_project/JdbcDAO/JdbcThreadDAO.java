@@ -26,14 +26,15 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
                                    final String message, final String slug, final String title) {
         final Integer threadId;
         if (created != null) {
-            threadId = getJdbcTemplate().queryForObject(ForumQueries.createThreadWithTimeQuery(),
+            threadId = getJdbcTemplate().queryForObject(ThreadQueries.createThreadWithTimeQuery(),
                     new Object[]{author, created, forum, message, slug, title}, Integer.class);
         } else {
-            threadId = getJdbcTemplate().queryForObject(ForumQueries.createThreadWithoutTimeQuery(),
+            threadId = getJdbcTemplate().queryForObject(ThreadQueries.createThreadWithoutTimeQuery(),
                     new Object[]{author, forum, message, slug, title}, Integer.class);
         }
-        getJdbcTemplate().update(ForumQueries.updateThreadsCount(), forum);
-        return getJdbcTemplate().queryForObject(ForumQueries.getThreadByIdQuery(), new Object[]{threadId}, readThread);
+        getJdbcTemplate().update(ForumQueries.updateThreadsCountQuery(), forum);
+        return getJdbcTemplate().queryForObject(ThreadQueries.getThreadQuery(threadId.toString()),
+                new Object[]{threadId}, readThread);
     }
 
     @Override
@@ -63,21 +64,21 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
 
     @Override
     public final ThreadView updateVotes(final VoteView view, final String slug_or_id) {
-        getJdbcTemplate().queryForObject(UserQueries.getUserQuery(), new Object[]{view.getNickname(), null}, readUser);
+        getJdbcTemplate().queryForObject(UserQueries.findUserQuery(), new Object[]{view.getNickname(), null}, readUser);
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 getJdbcTemplate().queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
-        getJdbcTemplate().update(ThreadQueries.updateUserVoteQuery(), threadId, view.getVoice(), view.getNickname());
+        getJdbcTemplate().update(UserQueries.updateUserVoteQuery(), threadId, view.getVoice(), view.getNickname());
         getJdbcTemplate().update(ThreadQueries.updateThreadVotesQuery(), threadId, threadId);
         return getJdbcTemplate().queryForObject(ThreadQueries.getThreadQuery(slug_or_id), new Object[]{slug_or_id}, readThread);
     }
 
     @Override
     public final Integer count() {
-        return getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM threads", Integer.class);
+        return getJdbcTemplate().queryForObject(ThreadQueries.countThreadsQuery(), Integer.class);
     }
 
     @Override
     public final void clear() {
-        getJdbcTemplate().execute("DELETE FROM threads");
+        getJdbcTemplate().execute(ThreadQueries.clearTableQuery());
     }
 }

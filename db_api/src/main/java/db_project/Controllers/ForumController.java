@@ -5,7 +5,6 @@ import db_project.Views.ThreadView;
 import db_project.Views.UserView;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +39,6 @@ public final class ForumController extends InferiorController {
         try {
             thread = jdbcThreadDAO.create(thread.getAuthor(), thread.getCreated(), slug,
                     thread.getMessage(), thread.getSlug(), thread.getTitle());
-            if (thread == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(jdbcThreadDAO.findByIdOrSlug(threadSlug));
         } catch (DataAccessException ex) {
@@ -56,9 +52,6 @@ public final class ForumController extends InferiorController {
         final ForumView forum;
         try {
             forum = jdbcForumDAO.findBySlug(slug);
-            if (forum == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -74,9 +67,6 @@ public final class ForumController extends InferiorController {
             @PathVariable("slug") final String slug) {
         try {
             final ForumView forum = jdbcForumDAO.findBySlug(slug);
-            if (forum == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -92,9 +82,6 @@ public final class ForumController extends InferiorController {
             @PathVariable("slug") final String slug) {
         try {
             final ForumView forum = jdbcForumDAO.findBySlug(slug);
-            if (forum == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }

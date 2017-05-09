@@ -26,8 +26,8 @@ public class ThreadController extends InferiorController {
                                                             @PathVariable(value = "slug_or_id") final String slug_or_id) {
         try {
             ThreadView thread = jdbcThreadDAO.findByIdOrSlug(slug_or_id);
-            if (posts.isEmpty() || thread == null) {
-                throw new EmptyResultDataAccessException(0);
+            if (posts.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             for (PostView post : posts) {
                 if (post.getParent() != 0) {
@@ -36,18 +36,16 @@ public class ThreadController extends InferiorController {
                         post.setForum(thread.getForum());
                         post.setThread(thread.getId());
                         if (!thread.getId().equals(parent.getThread())) {
-                            throw new DuplicateKeyException(null);
+                            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
                         }
-                    } catch (DataAccessException ex) {
-                        throw new DuplicateKeyException(null);
+                    } catch (EmptyResultDataAccessException ex) {
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
                     }
                 }
                 post.setForum(thread.getForum());
                 post.setThread(thread.getId());
             }
             jdbcPostDAO.create(posts, slug_or_id);
-        } catch (EmptyResultDataAccessException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } catch (DataAccessException ex) {
@@ -61,9 +59,6 @@ public class ThreadController extends InferiorController {
         final ThreadView thread;
         try {
             thread = jdbcThreadDAO.findByIdOrSlug(slug_or_id);
-            if (thread == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DataAccessException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -77,9 +72,6 @@ public class ThreadController extends InferiorController {
         try {
             jdbcThreadDAO.update(thread.getMessage(), thread.getTitle(), slug_or_id);
             thread = jdbcThreadDAO.findByIdOrSlug(slug_or_id);
-            if (thread == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(jdbcThreadDAO.findByIdOrSlug(slug_or_id));
         } catch (DataAccessException ex) {
@@ -95,9 +87,6 @@ public class ThreadController extends InferiorController {
         final ThreadView thread;
         try {
             thread = jdbcThreadDAO.updateVotes(vote, slug_or_id);
-            if (thread == null) {
-                throw new EmptyResultDataAccessException(0);
-            }
         } catch (DuplicateKeyException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(jdbcThreadDAO.findByIdOrSlug(slug_or_id));
         } catch (DataAccessException ex) {
