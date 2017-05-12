@@ -31,15 +31,9 @@ public class ForumQueries {
         return "SELECT u.about, u.email, u.fullname, u.nickname " +
                 "FROM users u " +
                 "WHERE u.id IN (" +
-                "  SELECT t.user_id" +
-                "  FROM forums f1" +
-                "    JOIN threads t ON (t.forum_id = f1.id)" +
-                "  WHERE f1.slug = ?" +
-                "  UNION ALL" +
-                "  SELECT p.user_id" +
-                "  FROM forums f2" +
-                "    JOIN posts p ON (p.forum_id = f2.id)" +
-                "  WHERE f2.slug = ?" +
+                "  SELECT user_id " +
+                "  FROM forum_users " +
+                "  WHERE forum_id = ?" +
                 ")";
     }
 

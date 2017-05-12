@@ -49,10 +49,10 @@ public class JdbcForumDAO extends JdbcInferiorDAO implements ForumDAO {
 
     @Override
     public final List<UserView> findAllUsers(String slug, Integer limit, String since, Boolean desc) {
+        final Integer forumId = getJdbcTemplate().queryForObject("SELECT id FROM forums WHERE slug = ?", Integer.class, slug);
         final StringBuilder sql = new StringBuilder(ForumQueries.getUsersByForumQuery());
         final List<Object> args = new ArrayList<>();
-        args.add(slug);
-        args.add(slug);
+        args.add(forumId);
         if (since != null) {
             sql.append(" AND u.nickname ");
             sql.append(desc == Boolean.TRUE ? "< ?" : "> ?");

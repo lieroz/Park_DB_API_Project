@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS posts CASCADE;
 DROP TABLE IF EXISTS threads CASCADE;
 DROP TABLE IF EXISTS forums CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS forum_users CASCADE;
 
 DROP INDEX IF EXISTS forums_user_id_idx;
 DROP INDEX IF EXISTS threads_user_id_idx;
@@ -9,6 +10,8 @@ DROP INDEX IF EXISTS threads_forum_id_idx;
 DROP INDEX IF EXISTS posts_user_id_idx;
 DROP INDEX IF EXISTS posts_forum_id_idx;
 DROP INDEX IF EXISTS posts_thread_id_idx;
+DROP INDEX IF EXISTS forum_users_user_id_idx;
+DROP INDEX IF EXISTS forum_users_forum_id_idx;
 
 CREATE EXTENSION IF NOT EXISTS CITEXT;
 
@@ -70,3 +73,35 @@ ALTER TABLE users
   ADD thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE;
 ALTER TABLE users
   ADD voice INTEGER DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS forum_users (
+  user_id  INTEGER REFERENCES users (id) ON DELETE CASCADE,
+  forum_id INTEGER REFERENCES forums (id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS forum_users_user_id_idx
+  ON forum_users (user_id);
+CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx
+  ON forum_users (forum_id);
+
+CREATE OR REPLACE FUNCTION on_insert_post_or_thread()
+  RETURNS TRIGGER AS '
+BEGIN
+  IF NOT EXISTS(SELECT *
+                FROM forum_users
+                WHERE forum_id = NEW.forum_id AND user_id = NEW.user_id)
+  THEN
+    INSERT INTO forum_users (user_id, forum_id) VALUES (NEW.user_id, NEW.forum_id);
+  END IF;
+  RETURN NEW;
+END;
+' LANGUAGE plpgsql;
+
+
+CREATE TRIGGER post_insert_trigger
+AFTER INSERT ON posts
+FOR EACH ROW EXECUTE PROCEDURE on_insert_post_or_thread();
+
+CREATE TRIGGER thread_insert_trigger
+AFTER INSERT ON threads
+FOR EACH ROW EXECUTE PROCEDURE on_insert_post_or_thread();
