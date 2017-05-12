@@ -35,8 +35,7 @@ public class PostQueries {
                 "    FROM posts p" +
                 "      JOIN users u ON (u.id = p.user_id)" +
                 "      JOIN forums f ON (f.id = p.forum_id) " +
-                "      JOIN threads t ON (t.id = p.thread_id)" +
-                "    WHERE t.id = " +
+                "    WHERE p.thread_id = " +
                 (slug_or_id.matches("\\d+") ?
                         "?" : "(SELECT threads.id FROM threads WHERE threads.slug = ?)"
                 ) +
@@ -46,7 +45,7 @@ public class PostQueries {
                 "      FROM some_posts" +
                 "        WHERE parent = 0" +
                 "    )" +
-                "    UNION" +
+                "    UNION ALL" +
                 "    (" +
                 "      SELECT" +
                 "        some_posts.*," +
@@ -64,8 +63,7 @@ public class PostQueries {
                 "    FROM posts p" +
                 "      JOIN users u ON (u.id = p.user_id)" +
                 "      JOIN forums f ON (f.id = p.forum_id) " +
-                "      JOIN threads t ON (t.id = p.thread_id)" +
-                "    WHERE t.id = " +
+                "    WHERE p.thread_id = " +
                 (slug_or_id.matches("\\d+") ?
                         "?" : "(SELECT threads.id FROM threads WHERE threads.slug = ?)"
                 ) +
@@ -77,7 +75,7 @@ public class PostQueries {
                 "      ORDER BY id " + (desc ? "DESC" : "ASC") +
                 "      LIMIT ? OFFSET ?" +
                 "    )" +
-                "    UNION" +
+                "    UNION ALL" +
                 "    (" +
                 "      SELECT" +
                 "        some_posts.*," +
