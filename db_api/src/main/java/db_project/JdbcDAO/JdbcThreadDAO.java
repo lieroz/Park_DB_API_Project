@@ -64,11 +64,13 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
 
     @Override
     public ThreadView updateVotes(final VoteView view, final String slug_or_id) {
-        getJdbcTemplate().queryForObject(UserQueries.findUserQuery(), new Object[]{view.getNickname(), null}, readUser);
+        final Integer userId = getJdbcTemplate().queryForObject(UserQueries.findUserIdQuery(), Integer.class, view.getNickname());
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 getJdbcTemplate().queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
-        getJdbcTemplate().update(UserQueries.updateUserVoteQuery(), threadId, view.getVoice(), view.getNickname());
-        getJdbcTemplate().update(ThreadQueries.updateThreadVotesQuery(), threadId, threadId);
+        final StringBuilder query = new StringBuilder("SELECT update_or_insert_votes(");
+        query.append(userId.toString()).append(", ").append(threadId.toString())
+                .append(", ").append(view.getVoice()).append(")");
+        getJdbcTemplate().execute(query.toString());
         return getJdbcTemplate().queryForObject(ThreadQueries.getThreadQuery(slug_or_id), new Object[]{slug_or_id}, readThread);
     }
 

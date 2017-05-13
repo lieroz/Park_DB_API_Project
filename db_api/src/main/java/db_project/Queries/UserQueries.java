@@ -12,6 +12,10 @@ public class UserQueries {
         return "SELECT * FROM users WHERE nickname = ? OR email = ?";
     }
 
+    public static String findUserIdQuery() {
+        return "SELECT id FROM users WHERE nickname = ?";
+    }
+
     public static String updateUserVoteQuery() {
         return "UPDATE users SET thread_id = ?, voice = ? WHERE nickname = ?";
     }
