@@ -8,7 +8,7 @@ import db_project.Queries.UserQueries;
 import db_project.Views.*;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -18,14 +18,14 @@ import java.util.TimeZone;
 /**
  * Created by lieroz on 9.05.17.
  */
-@Component
+@Service
 public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     public JdbcPostDAO(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
     }
 
     @Override
-    public final void create(final List<PostView> posts, final String slug_or_id) {
+    public void create(final List<PostView> posts, final String slug_or_id) {
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 getJdbcTemplate().queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
         final Integer forumId = getJdbcTemplate().queryForObject(ThreadQueries.getForumIdQuery(), Integer.class, threadId);
@@ -59,7 +59,7 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     }
 
     @Override
-    public final PostView update(final String message, final Integer id) {
+    public PostView update(final String message, final Integer id) {
         final PostView post = findById(id);
         final StringBuilder sql = new StringBuilder("UPDATE posts SET message = ?");
         if (!message.equals(post.getMessage())) {
@@ -78,7 +78,7 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     }
 
     @Override
-    public final PostDetailedView detailedView(final Integer id, final String[] related) {
+    public PostDetailedView detailedView(final Integer id, final String[] related) {
         final PostView post = findById(id);
         UserView user = null;
         ForumView forum = null;
@@ -104,7 +104,7 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     }
 
     @Override
-    public final List<PostView> sort(final Integer limit, final Integer offset, final String sort,
+    public List<PostView> sort(final Integer limit, final Integer offset, final String sort,
                                      final Boolean desc, final String slug_or_id) {
         switch (sort) {
             case "flat":
@@ -122,12 +122,12 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     }
 
     @Override
-    public final Integer count() {
+    public Integer count() {
         return getJdbcTemplate().queryForObject(PostQueries.countPostsQuery(), Integer.class);
     }
 
     @Override
-    public final void clear() {
+    public void clear() {
         getJdbcTemplate().execute(PostQueries.clearTableQuery());
     }
 }

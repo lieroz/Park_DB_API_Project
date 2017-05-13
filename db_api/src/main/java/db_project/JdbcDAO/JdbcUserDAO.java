@@ -4,7 +4,7 @@ import db_project.DAO.UserDAO;
 import db_project.Queries.UserQueries;
 import db_project.Views.UserView;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,19 +12,19 @@ import java.util.List;
 /**
  * Created by lieroz on 9.05.17.
  */
-@Component
+@Service
 public class JdbcUserDAO extends JdbcInferiorDAO implements UserDAO {
     public JdbcUserDAO(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
     }
 
     @Override
-    public final void create(final String about, final String email, final String fullname, final String nickname) {
+    public void create(final String about, final String email, final String fullname, final String nickname) {
         getJdbcTemplate().update(UserQueries.createUserQuery(), about, email, fullname, nickname);
     }
 
     @Override
-    public final void update(final String about, final String email, final String fullname, final String nickname) {
+    public void update(final String about, final String email, final String fullname, final String nickname) {
         final StringBuilder sql = new StringBuilder("UPDATE users SET");
         final List<Object> args = new ArrayList<>();
         if (about != null) {
@@ -48,22 +48,22 @@ public class JdbcUserDAO extends JdbcInferiorDAO implements UserDAO {
     }
 
     @Override
-    public final UserView findSingleByNickOrMail(final String nickname, final String email) {
+    public UserView findSingleByNickOrMail(final String nickname, final String email) {
         return getJdbcTemplate().queryForObject(UserQueries.findUserQuery(), new Object[]{nickname, email}, readUser);
     }
 
     @Override
-    public final List<UserView> findManyByNickOrMail(final String nickname, final String email) {
+    public List<UserView> findManyByNickOrMail(final String nickname, final String email) {
         return getJdbcTemplate().query(UserQueries.findUserQuery(), new Object[]{nickname, email}, readUser);
     }
 
     @Override
-    public final Integer count() {
+    public Integer count() {
         return getJdbcTemplate().queryForObject(UserQueries.countUsersQuery(), Integer.class);
     }
 
     @Override
-    public final void clear() {
+    public void clear() {
         getJdbcTemplate().execute(UserQueries.clearTableQuery());
     }
 }

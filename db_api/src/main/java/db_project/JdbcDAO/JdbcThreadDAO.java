@@ -7,7 +7,7 @@ import db_project.Queries.UserQueries;
 import db_project.Views.ThreadView;
 import db_project.Views.VoteView;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +15,14 @@ import java.util.List;
 /**
  * Created by lieroz on 9.05.17.
  */
-@Component
+@Service
 public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
     public JdbcThreadDAO(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
     }
 
     @Override
-    public final ThreadView create(final String author, final String created, final String forum,
+    public ThreadView create(final String author, final String created, final String forum,
                                    final String message, final String slug, final String title) {
         final Integer threadId;
         if (created != null) {
@@ -38,7 +38,7 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
     }
 
     @Override
-    public final void update(final String message, final String title, final String slug_or_id) {
+    public void update(final String message, final String title, final String slug_or_id) {
         final StringBuilder sql = new StringBuilder("UPDATE threads SET");
         final List<Object> args = new ArrayList<>();
         if (message != null) {
@@ -58,12 +58,12 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
     }
 
     @Override
-    public final ThreadView findByIdOrSlug(final String slug_or_id) {
+    public ThreadView findByIdOrSlug(final String slug_or_id) {
         return getJdbcTemplate().queryForObject(ThreadQueries.getThreadQuery(slug_or_id), new Object[]{slug_or_id}, readThread);
     }
 
     @Override
-    public final ThreadView updateVotes(final VoteView view, final String slug_or_id) {
+    public ThreadView updateVotes(final VoteView view, final String slug_or_id) {
         getJdbcTemplate().queryForObject(UserQueries.findUserQuery(), new Object[]{view.getNickname(), null}, readUser);
         final Integer threadId = slug_or_id.matches("\\d+") ? Integer.valueOf(slug_or_id) :
                 getJdbcTemplate().queryForObject(ThreadQueries.getThreadId(), Integer.class, slug_or_id);
@@ -73,12 +73,12 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
     }
 
     @Override
-    public final Integer count() {
+    public Integer count() {
         return getJdbcTemplate().queryForObject(ThreadQueries.countThreadsQuery(), Integer.class);
     }
 
     @Override
-    public final void clear() {
+    public void clear() {
         getJdbcTemplate().execute(ThreadQueries.clearTableQuery());
     }
 }
