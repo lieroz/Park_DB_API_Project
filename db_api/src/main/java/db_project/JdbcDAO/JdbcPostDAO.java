@@ -45,6 +45,8 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
                 preparedStatement.setString(5, post.getMessage());
                 preparedStatement.setInt(6, post.getParent());
                 preparedStatement.setInt(7, threadId);
+                preparedStatement.setInt(8, post.getParent());
+                preparedStatement.setInt(9, postId);
                 preparedStatement.addBatch();
                 post.setCreated(dateFormat.format(created));
                 post.setId(postId);

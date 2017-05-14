@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS posts (
   is_edited BOOLEAN     DEFAULT FALSE,
   message   TEXT        DEFAULT NULL,
   parent    INTEGER     DEFAULT 0,
-  thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE NOT NULL
+  thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE NOT NULL,
+  path      INTEGER []                                        NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS posts_user_id_idx
@@ -113,12 +114,22 @@ CREATE OR REPLACE FUNCTION update_or_insert_votes(u_id INTEGER, t_id INTEGER, v 
 DECLARE
   count INTEGER;
 BEGIN
-  SELECT COUNT(*) FROM votes WHERE user_id = u_id AND thread_id = t_id INTO count;
-  IF count > 0 THEN
-    UPDATE votes SET voice = v WHERE user_id = u_id AND thread_id = t_id;
+  SELECT COUNT(*)
+  FROM votes
+  WHERE user_id = u_id AND thread_id = t_id
+  INTO count;
+  IF count > 0
+  THEN
+    UPDATE votes
+    SET voice = v
+    WHERE user_id = u_id AND thread_id = t_id;
   ELSE
-    INSERT INTO votes(user_id, thread_id, voice) VALUES(u_id, t_id, v);
+    INSERT INTO votes (user_id, thread_id, voice) VALUES (u_id, t_id, v);
   END IF;
-  UPDATE threads SET votes = (SELECT SUM(voice) FROM votes WHERE thread_id = t_id) WHERE id = t_id;
+  UPDATE threads
+  SET votes = (SELECT SUM(voice)
+               FROM votes
+               WHERE thread_id = t_id)
+  WHERE id = t_id;
 END;
 ' LANGUAGE plpgsql
