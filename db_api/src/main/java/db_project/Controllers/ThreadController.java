@@ -22,7 +22,7 @@ import java.util.List;
 public class ThreadController extends InferiorController {
     @RequestMapping(value = "/create", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<PostView>> createPosts(@RequestBody List<PostView> posts,
+    public ResponseEntity<List<PostView>> createPosts(@RequestBody List<PostView> posts,
                                                             @PathVariable(value = "slug_or_id") final String slug_or_id) {
         try {
             ThreadView thread = jdbcThreadDAO.findByIdOrSlug(slug_or_id);
@@ -55,7 +55,7 @@ public class ThreadController extends InferiorController {
     }
 
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadView> viewThread(@PathVariable(value = "slug_or_id") final String slug_or_id) {
+    public ResponseEntity<ThreadView> viewThread(@PathVariable(value = "slug_or_id") final String slug_or_id) {
         final ThreadView thread;
         try {
             thread = jdbcThreadDAO.findByIdOrSlug(slug_or_id);
@@ -67,7 +67,7 @@ public class ThreadController extends InferiorController {
 
     @RequestMapping(value = "/details", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadView> updateThread(@RequestBody ThreadView thread,
+    public ResponseEntity<ThreadView> updateThread(@RequestBody ThreadView thread,
                                                          @PathVariable(value = "slug_or_id") final String slug_or_id) {
         try {
             jdbcThreadDAO.update(thread.getMessage(), thread.getTitle(), slug_or_id);
@@ -82,7 +82,7 @@ public class ThreadController extends InferiorController {
 
     @RequestMapping(value = "/vote", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadView> voteForThread(@RequestBody final VoteView vote,
+    public ResponseEntity<ThreadView> voteForThread(@RequestBody final VoteView vote,
                                                           @PathVariable("slug_or_id") final String slug_or_id) {
         final ThreadView thread;
         try {
@@ -96,7 +96,7 @@ public class ThreadController extends InferiorController {
     }
 
     @RequestMapping(value = "/posts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<PostsSortedView> viewThreads(
+    public ResponseEntity<PostsSortedView> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "marker", required = false) String marker,
             @RequestParam(value = "sort", required = false, defaultValue = "flat") final String sort,

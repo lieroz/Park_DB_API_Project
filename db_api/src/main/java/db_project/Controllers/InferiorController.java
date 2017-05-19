@@ -27,7 +27,7 @@ public class InferiorController {
     protected JdbcPostDAO jdbcPostDAO;
 
     @RequestMapping("/status")
-    public final ResponseEntity<Object> serverStatus() {
+    public ResponseEntity<Object> serverStatus() {
         final Integer forumsCount = jdbcForumDAO.count();
         final Integer postsCount = jdbcPostDAO.count();
         final Integer threadsCount = jdbcThreadDAO.count();
@@ -36,7 +36,7 @@ public class InferiorController {
     }
 
     @RequestMapping("/clear")
-    public final ResponseEntity<Object> clearService() {
+    public ResponseEntity<Object> clearService() {
         jdbcPostDAO.clear();
         jdbcThreadDAO.clear();
         jdbcForumDAO.clear();

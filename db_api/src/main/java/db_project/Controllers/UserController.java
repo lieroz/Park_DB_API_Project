@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/api/user/{nickname}")
-public final class UserController extends InferiorController {
+public class UserController extends InferiorController {
     @RequestMapping(value = "/create", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<Object> createUser(@RequestBody UserView user,
+    public ResponseEntity<Object> createUser(@RequestBody UserView user,
                                                    @PathVariable(value = "nickname") String nickname) {
         try {
             jdbcUserDAO.create(user.getAbout(), user.getEmail(), user.getFullname(), nickname);
@@ -32,7 +32,7 @@ public final class UserController extends InferiorController {
     }
 
     @RequestMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserView> viewProfile(@PathVariable(value = "nickname") String nickname) {
+    public ResponseEntity<UserView> viewProfile(@PathVariable(value = "nickname") String nickname) {
         final UserView user;
         try {
             user = jdbcUserDAO.findSingleByNickOrMail(nickname, null);
@@ -44,7 +44,7 @@ public final class UserController extends InferiorController {
 
     @RequestMapping(value = "/profile", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<UserView> modifyProfile(@RequestBody UserView user,
+    public ResponseEntity<UserView> modifyProfile(@RequestBody UserView user,
                                                         @PathVariable(value = "nickname") String nickname) {
         try {
             jdbcUserDAO.update(user.getAbout(), user.getEmail(), user.getFullname(), nickname);

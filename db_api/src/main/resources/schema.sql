@@ -104,6 +104,7 @@ AFTER INSERT ON threads
 FOR EACH ROW EXECUTE PROCEDURE on_insert_post_or_thread();
 
 CREATE TABLE votes (
+CREATE TABLE IF NOT EXISTS votes (
   user_id   INTEGER REFERENCES users (id) ON DELETE CASCADE,
   thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE,
   voice     INTEGER DEFAULT 0

@@ -17,10 +17,10 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "api/forum")
-public final class ForumController extends InferiorController {
+public class ForumController extends InferiorController {
     @RequestMapping(value = "/create", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ForumView> createForum(@RequestBody final ForumView forum) {
+    public ResponseEntity<ForumView> createForum(@RequestBody final ForumView forum) {
         try {
             jdbcForumDAO.create(forum.getUser(), forum.getSlug(), forum.getTitle());
         } catch (DuplicateKeyException ex) {
@@ -33,7 +33,7 @@ public final class ForumController extends InferiorController {
 
     @RequestMapping(value = "/{slug}/create", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ThreadView> createSlug(@RequestBody ThreadView thread,
+    public ResponseEntity<ThreadView> createSlug(@RequestBody ThreadView thread,
                                                        @PathVariable(value = "slug") final String slug) {
         final String threadSlug = thread.getSlug();
         try {
@@ -48,7 +48,7 @@ public final class ForumController extends InferiorController {
     }
 
     @RequestMapping(value = "/{slug}/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<ForumView> viewForum(@PathVariable("slug") final String slug) {
+    public ResponseEntity<ForumView> viewForum(@PathVariable("slug") final String slug) {
         final ForumView forum;
         try {
             forum = jdbcForumDAO.findBySlug(slug);
@@ -60,7 +60,7 @@ public final class ForumController extends InferiorController {
 
     @SuppressWarnings("Duplicates")
     @RequestMapping(value = "/{slug}/threads", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<ThreadView>> viewThreads(
+    public ResponseEntity<List<ThreadView>> viewThreads(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "since", required = false) final String since,
             @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,
@@ -75,7 +75,7 @@ public final class ForumController extends InferiorController {
 
     @SuppressWarnings("Duplicates")
     @RequestMapping(value = "/{slug}/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<List<UserView>> viewUsers(
+    public ResponseEntity<List<UserView>> viewUsers(
             @RequestParam(value = "limit", required = false, defaultValue = "100") final Integer limit,
             @RequestParam(value = "since", required = false) final String since,
             @RequestParam(value = "desc", required = false, defaultValue = "false") final Boolean desc,

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/post/{id}")
 public class PostController extends InferiorController {
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<PostDetailedView> viewForum(
+    public ResponseEntity<PostDetailedView> viewForum(
             @RequestParam(value = "related", required = false) String[] related, @PathVariable("id") final Integer id) {
         final PostDetailedView post;
         try {
@@ -28,7 +28,7 @@ public class PostController extends InferiorController {
 
     @RequestMapping(value = "/details", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public final ResponseEntity<PostView> viewForum(@RequestBody PostView post, @PathVariable("id") final Integer id) {
+    public ResponseEntity<PostView> viewForum(@RequestBody PostView post, @PathVariable("id") final Integer id) {
         try {
             post = post.getMessage() != null ? jdbcPostDAO.update(post.getMessage(), id) : jdbcPostDAO.findById(id);
         } catch (DataAccessException ex) {
