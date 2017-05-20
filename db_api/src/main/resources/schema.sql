@@ -11,6 +11,9 @@ DROP INDEX IF EXISTS threads_forum_id_idx;
 DROP INDEX IF EXISTS posts_user_id_idx;
 DROP INDEX IF EXISTS posts_forum_id_idx;
 DROP INDEX IF EXISTS posts_thread_id_idx;
+DROP INDEX IF EXISTS posts_path_thread_id_idx;
+DROP INDEX IF EXISTS posts_path_help_idx;
+DROP INDEX IF EXISTS posts_multi_idx;
 DROP INDEX IF EXISTS forum_users_user_id_idx;
 DROP INDEX IF EXISTS forum_users_forum_id_idx;
 
@@ -70,6 +73,12 @@ CREATE INDEX IF NOT EXISTS posts_forum_id_idx
   ON posts (forum_id);
 CREATE INDEX IF NOT EXISTS posts_thread_id_idx
   ON posts (thread_id);
+CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx
+  ON posts (thread_id, path);
+CREATE INDEX IF NOT EXISTS posts_path_help_idx
+  ON posts ((path [1]), path);
+CREATE INDEX IF NOT EXISTS posts_multi_idx
+  ON posts (thread_id, parent, id);
 
 CREATE TABLE IF NOT EXISTS forum_users (
   user_id  INTEGER REFERENCES users (id) ON DELETE CASCADE,
