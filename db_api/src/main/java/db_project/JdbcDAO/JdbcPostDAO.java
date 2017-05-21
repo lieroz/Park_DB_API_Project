@@ -32,28 +32,30 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
         final Timestamp created = new Timestamp(System.currentTimeMillis());
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
         try (Connection connection = getJdbcTemplate().getDataSource().getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(PostQueries.createPostsQuery(), Statement.NO_GENERATED_KEYS);
-
-            for (PostView post : posts) {
-                final Integer postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
-                preparedStatement.setString(1, post.getAuthor());
-                preparedStatement.setTimestamp(2, created);
-                preparedStatement.setInt(3, forumId);
-                preparedStatement.setInt(4, postId);
-                preparedStatement.setString(5, post.getMessage());
-                preparedStatement.setInt(6, post.getParent());
-                preparedStatement.setInt(7, threadId);
-                preparedStatement.setInt(8, post.getParent());
-                preparedStatement.setInt(9, postId);
-                preparedStatement.addBatch();
-                post.setCreated(dateFormat.format(created));
-                post.setId(postId);
+            connection.setAutoCommit(false);
+            try (CallableStatement callableStatement = connection.prepareCall("{call post_insert(?, ?, ?, ?, ?, ?, ?)}")) {
+                for (PostView post : posts) {
+                    Integer postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
+                    callableStatement.setString(1, post.getAuthor());
+                    callableStatement.setTimestamp(2, created);
+                    callableStatement.setInt(3, forumId);
+                    callableStatement.setInt(4, postId);
+                    callableStatement.setString(5, post.getMessage());
+                    callableStatement.setInt(6, post.getParent());
+                    callableStatement.setInt(7, threadId);
+                    callableStatement.addBatch();
+                    post.setCreated(dateFormat.format(created));
+                    post.setId(postId);
+                }
+                callableStatement.executeBatch();
+                connection.commit();
+            } catch (SQLException ex) {
+                connection.rollback();
+                throw new DataRetrievalFailureException(null);
+            } finally {
+                connection.setAutoCommit(true);
             }
-
-            preparedStatement.executeBatch();
-            preparedStatement.close();
         } catch (SQLException ex) {
             throw new DataRetrievalFailureException(null);
         }
@@ -107,7 +109,7 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
 
     @Override
     public List<PostView> sort(final Integer limit, final Integer offset, final String sort,
-                                     final Boolean desc, final String slug_or_id) {
+                               final Boolean desc, final String slug_or_id) {
         switch (sort) {
             case "flat":
                 return getJdbcTemplate().query(PostQueries.postsFlatSortQuery(slug_or_id, desc),

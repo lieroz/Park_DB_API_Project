@@ -24,14 +24,8 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
     @Override
     public ThreadView create(final String author, final String created, final String forum,
                                    final String message, final String slug, final String title) {
-        final Integer threadId;
-        if (created != null) {
-            threadId = getJdbcTemplate().queryForObject(ThreadQueries.createThreadWithTimeQuery(),
-                    new Object[]{author, created, forum, message, slug, title}, Integer.class);
-        } else {
-            threadId = getJdbcTemplate().queryForObject(ThreadQueries.createThreadWithoutTimeQuery(),
-                    new Object[]{author, forum, message, slug, title}, Integer.class);
-        }
+        final Integer threadId = getJdbcTemplate().queryForObject("SELECT thread_insert(?, ?, ?, ?, ?, ?)",
+                new Object[]{author, created, forum, message, slug, title}, Integer.class);
         getJdbcTemplate().update(ForumQueries.updateThreadsCountQuery(), forum);
         return getJdbcTemplate().queryForObject(ThreadQueries.getThreadQuery(threadId.toString()),
                 new Object[]{threadId}, readThread);
