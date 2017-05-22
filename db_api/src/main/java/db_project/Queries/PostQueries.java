@@ -47,7 +47,7 @@ public class PostQueries {
                 "FROM posts p" +
                 "  JOIN users u ON (u.id = p.user_id)" +
                 "  JOIN forums f ON (f.id = p.forum_id) " +
-                "WHERE p.path[1] IN (" +
+                "WHERE p.root_id IN (" +
                 "  SELECT id" +
                 "  FROM posts" +
                 "  WHERE thread_id = " +

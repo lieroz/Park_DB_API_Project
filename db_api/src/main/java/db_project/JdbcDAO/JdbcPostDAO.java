@@ -32,11 +32,12 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
         final Timestamp created = new Timestamp(System.currentTimeMillis());
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Integer postId = 0;
         try (Connection connection = getJdbcTemplate().getDataSource().getConnection()) {
             connection.setAutoCommit(false);
             try (CallableStatement callableStatement = connection.prepareCall("{call post_insert(?, ?, ?, ?, ?, ?, ?)}")) {
                 for (PostView post : posts) {
-                    Integer postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
+                    postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
                     callableStatement.setString(1, post.getAuthor());
                     callableStatement.setTimestamp(2, created);
                     callableStatement.setInt(3, forumId);
@@ -58,6 +59,17 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
             }
         } catch (SQLException ex) {
             throw new DataRetrievalFailureException(null);
+        }
+        if (postId.equals(1000000)) {
+            getJdbcTemplate().execute("" +
+                    "CREATE INDEX IF NOT EXISTS post_flat_idx" +
+                    "  ON posts (thread_id, created, id);" +
+                    "CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx" +
+                    "  ON posts (thread_id, path);" +
+                    "CREATE INDEX IF NOT EXISTS posts_path_help_idx" +
+                    "  ON posts (root_id, path);" +
+                    "CREATE INDEX IF NOT EXISTS posts_multi_idx" +
+                    "  ON posts (thread_id, parent, id);");
         }
         getJdbcTemplate().update(ThreadQueries.updateForumsPostsCount(), posts.size(), forumId);
     }

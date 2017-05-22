@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS posts (
   message   TEXT        DEFAULT NULL,
   parent    INTEGER     DEFAULT 0,
   thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE NOT NULL,
-  path      INTEGER []                                        NOT NULL
+  path      INTEGER []                                        NOT NULL,
+  root_id   INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS posts_user_id_idx
@@ -82,7 +83,7 @@ CREATE INDEX IF NOT EXISTS posts_forum_id_idx
 -- CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx
 --   ON posts (thread_id, path);
 -- CREATE INDEX IF NOT EXISTS posts_path_help_idx
---   ON posts ((path [1]), path);
+--   ON posts (root_id, path);
 -- CREATE INDEX IF NOT EXISTS posts_multi_idx
 --   ON posts (thread_id, parent, id);
 
@@ -155,17 +156,21 @@ CREATE OR REPLACE FUNCTION post_insert(post_author    CITEXT, post_created TIMES
   RETURNS VOID AS '
 DECLARE
   post_user_id INTEGER;
+  mat_path     INTEGER [];
 BEGIN
   SELECT id
   FROM users
   WHERE nickname = post_author
   INTO post_user_id;
   --
-  INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path)
+  SELECT path
+  FROM posts
+  WHERE id = post_parent
+  INTO mat_path;
+  --
+  INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path, root_id)
   VALUES (post_user_id, post_created, post_forum_id, post_id, post_message, post_parent, post_thread_id,
-          array_append((SELECT path
-                        FROM posts
-                        WHERE id = post_parent), post_id));
+          array_append(mat_path, post_id), CASE WHEN post_parent = 0 THEN post_id ELSE mat_path[1] END);
   --
   IF NOT EXISTS(
       SELECT *
