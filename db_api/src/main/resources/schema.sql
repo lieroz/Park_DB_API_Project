@@ -121,18 +121,14 @@ BEGIN
   WHERE slug = forum_slug
   INTO thread_forum_id;
   --
-  IF thread_created IS NULL
-  THEN
-    INSERT INTO threads (user_id, forum_id, message, slug, title)
-    VALUES (thread_user_id, thread_forum_id, thread_message, thread_slug, thread_title)
-    RETURNING id
-      INTO thread_id;
-  ELSE
-    INSERT INTO threads (user_id, created, forum_id, message, slug, title)
-    VALUES (thread_user_id, thread_created, thread_forum_id, thread_message, thread_slug, thread_title)
-    RETURNING id
-      INTO thread_id;
-  END IF;
+  INSERT INTO threads (user_id, created, forum_id, message, slug, title)
+  VALUES (thread_user_id,
+          CASE WHEN thread_created IS NULL
+            THEN NOW()
+          ELSE thread_created END,
+          thread_forum_id, thread_message, thread_slug, thread_title)
+  RETURNING id
+    INTO thread_id;
   --
   UPDATE forums
   SET threads = threads + 1
@@ -164,9 +160,10 @@ BEGIN
   --
   INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path, root_id)
   VALUES (post_user_id, post_created, post_forum_id, post_id, post_message, post_parent, post_thread_id,
-          array_append(mat_path, post_id), CASE WHEN post_parent = 0
-      THEN post_id
-                                           ELSE mat_path [1] END);
+          array_append(mat_path, post_id),
+          CASE WHEN post_parent = 0
+            THEN post_id
+          ELSE mat_path [1] END);
   --
   INSERT INTO forum_users (user_id, forum_id) VALUES (post_user_id, post_forum_id);
 END;

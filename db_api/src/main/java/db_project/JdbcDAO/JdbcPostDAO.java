@@ -32,7 +32,7 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
         final Timestamp created = new Timestamp(System.currentTimeMillis());
         final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        try (Connection connection = getDataSource().getConnection()) {
+        try (Connection connection = getJdbcTemplate().getDataSource().getConnection()) {
             connection.setAutoCommit(false);
             try (CallableStatement callableStatement = connection.prepareCall("{call post_insert(?, ?, ?, ?, ?, ?, ?)}")) {
                 for (PostView post : posts) {
