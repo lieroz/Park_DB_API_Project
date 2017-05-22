@@ -26,7 +26,6 @@ public class JdbcThreadDAO extends JdbcInferiorDAO implements ThreadDAO {
                                    final String message, final String slug, final String title) {
         final Integer threadId = getJdbcTemplate().queryForObject("SELECT thread_insert(?, ?, ?, ?, ?, ?)",
                 new Object[]{author, created, forum, message, slug, title}, Integer.class);
-        getJdbcTemplate().update(ForumQueries.updateThreadsCountQuery(), forum);
         return getJdbcTemplate().queryForObject(ThreadQueries.getThreadQuery(threadId.toString()),
                 new Object[]{threadId}, readThread);
     }

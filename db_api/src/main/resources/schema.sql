@@ -10,7 +10,7 @@ DROP INDEX IF EXISTS threads_user_id_idx;
 DROP INDEX IF EXISTS threads_forum_id_idx;
 DROP INDEX IF EXISTS posts_user_id_idx;
 DROP INDEX IF EXISTS posts_forum_id_idx;
-DROP INDEX IF EXISTS posts_thread_id_idx;
+DROP INDEX IF EXISTS post_flat_idx;
 DROP INDEX IF EXISTS posts_path_thread_id_idx;
 DROP INDEX IF EXISTS posts_path_help_idx;
 DROP INDEX IF EXISTS posts_multi_idx;
@@ -77,14 +77,14 @@ CREATE INDEX IF NOT EXISTS posts_user_id_idx
   ON posts (user_id);
 CREATE INDEX IF NOT EXISTS posts_forum_id_idx
   ON posts (forum_id);
-CREATE INDEX IF NOT EXISTS posts_thread_id_idx
-  ON posts (thread_id);
-CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx
-  ON posts (thread_id, path);
-CREATE INDEX IF NOT EXISTS posts_path_help_idx
-  ON posts ((path [1]), path);
-CREATE INDEX IF NOT EXISTS posts_multi_idx
-  ON posts (thread_id, parent, id);
+-- CREATE INDEX IF NOT EXISTS post_flat_idx
+--   ON posts (thread_id, created, id);
+-- CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx
+--   ON posts (thread_id, path);
+-- CREATE INDEX IF NOT EXISTS posts_path_help_idx
+--   ON posts ((path [1]), path);
+-- CREATE INDEX IF NOT EXISTS posts_multi_idx
+--   ON posts (thread_id, parent, id);
 
 CREATE TABLE IF NOT EXISTS forum_users (
   user_id  INTEGER REFERENCES users (id) ON DELETE CASCADE,
@@ -133,6 +133,10 @@ BEGIN
       INTO thread_id;
   END IF;
   --
+  UPDATE forums
+  SET threads = threads + 1
+  WHERE id = thread_forum_id;
+  --
   IF NOT EXISTS(
       SELECT *
       FROM forum_users
@@ -145,8 +149,9 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION post_insert(post_author  CITEXT, post_created TIMESTAMPTZ, post_forum_id INTEGER,
-                                       post_id INTEGER, post_message TEXT, post_parent INTEGER, post_thread_id INTEGER)
+CREATE OR REPLACE FUNCTION post_insert(post_author    CITEXT, post_created TIMESTAMPTZ, post_forum_id INTEGER,
+                                       post_id        INTEGER, post_message TEXT, post_parent INTEGER,
+                                       post_thread_id INTEGER)
   RETURNS VOID AS '
 DECLARE
   post_user_id INTEGER;
