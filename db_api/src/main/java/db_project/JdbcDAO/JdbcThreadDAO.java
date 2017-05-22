@@ -1,7 +1,6 @@
 package db_project.JdbcDAO;
 
 import db_project.DAO.ThreadDAO;
-import db_project.Queries.ForumQueries;
 import db_project.Queries.ThreadQueries;
 import db_project.Queries.UserQueries;
 import db_project.Views.ThreadView;

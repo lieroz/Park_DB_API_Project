@@ -138,13 +138,7 @@ BEGIN
   SET threads = threads + 1
   WHERE id = thread_forum_id;
   --
-  IF NOT EXISTS(
-      SELECT *
-      FROM forum_users
-      WHERE forum_id = thread_forum_id AND user_id = thread_user_id)
-  THEN
-    INSERT INTO forum_users (user_id, forum_id) VALUES (thread_user_id, thread_forum_id);
-  END IF;
+  INSERT INTO forum_users (user_id, forum_id) VALUES (thread_user_id, thread_forum_id);
   --
   RETURN thread_id;
 END;
@@ -170,15 +164,11 @@ BEGIN
   --
   INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path, root_id)
   VALUES (post_user_id, post_created, post_forum_id, post_id, post_message, post_parent, post_thread_id,
-          array_append(mat_path, post_id), CASE WHEN post_parent = 0 THEN post_id ELSE mat_path[1] END);
+          array_append(mat_path, post_id), CASE WHEN post_parent = 0
+      THEN post_id
+                                           ELSE mat_path [1] END);
   --
-  IF NOT EXISTS(
-      SELECT *
-      FROM forum_users
-      WHERE forum_id = post_forum_id AND user_id = post_user_id)
-  THEN
-    INSERT INTO forum_users (user_id, forum_id) VALUES (post_user_id, post_forum_id);
-  END IF;
+  INSERT INTO forum_users (user_id, forum_id) VALUES (post_user_id, post_forum_id);
 END;
 ' LANGUAGE plpgsql;
 
