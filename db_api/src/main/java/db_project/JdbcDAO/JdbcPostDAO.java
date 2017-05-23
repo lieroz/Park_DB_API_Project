@@ -34,21 +34,35 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         try (Connection connection = getJdbcTemplate().getDataSource().getConnection()) {
             connection.setAutoCommit(false);
-            try (CallableStatement callableStatement = connection.prepareCall("{call post_insert(?, ?, ?, ?, ?, ?, ?)}")) {
+            try (PreparedStatement postsPrepared = connection.prepareStatement(PostQueries.createPostsQuery(), Statement.NO_GENERATED_KEYS);
+                 PreparedStatement userForumsPrepared = connection.prepareStatement(PostQueries.insertIntoForumUsers(), Statement.NO_GENERATED_KEYS)) {
                 for (PostView post : posts) {
-                    Integer postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
-                    callableStatement.setString(1, post.getAuthor());
-                    callableStatement.setTimestamp(2, created);
-                    callableStatement.setInt(3, forumId);
-                    callableStatement.setInt(4, postId);
-                    callableStatement.setString(5, post.getMessage());
-                    callableStatement.setInt(6, post.getParent());
-                    callableStatement.setInt(7, threadId);
-                    callableStatement.addBatch();
+                    final Integer userId = getJdbcTemplate().queryForObject(UserQueries.findUserIdQuery(), Integer.class, post.getAuthor());
+                    final Integer postId = getJdbcTemplate().queryForObject("SELECT nextval('posts_id_seq')", Integer.class);
+                    postsPrepared.setInt(1, userId);
+                    postsPrepared.setTimestamp(2, created);
+                    postsPrepared.setInt(3, forumId);
+                    postsPrepared.setInt(4, postId);
+                    postsPrepared.setString(5, post.getMessage());
+                    postsPrepared.setInt(6, post.getParent());
+                    postsPrepared.setInt(7, threadId);
+                    postsPrepared.setInt(8, post.getParent());
+                    postsPrepared.setInt(9, postId);
+                    if (post.getParent() == 0) {
+                        postsPrepared.setInt(10, postId);
+                    } else {
+                        final Array path = getJdbcTemplate().queryForObject("SELECT path FROM posts WHERE id = ?", Array.class, post.getParent());
+                        postsPrepared.setInt(10, ((Integer[]) path.getArray())[0]);
+                    }
+                    postsPrepared.addBatch();
+                    userForumsPrepared.setInt(1, userId);
+                    userForumsPrepared.setInt(2, forumId);
+                    userForumsPrepared.addBatch();
                     post.setCreated(dateFormat.format(created));
                     post.setId(postId);
                 }
-                callableStatement.executeBatch();
+                postsPrepared.executeBatch();
+                userForumsPrepared.executeBatch();
                 connection.commit();
             } catch (SQLException ex) {
                 connection.rollback();

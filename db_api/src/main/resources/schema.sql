@@ -18,7 +18,6 @@ DROP INDEX IF EXISTS forum_users_user_id_idx;
 DROP INDEX IF EXISTS forum_users_forum_id_idx;
 
 DROP FUNCTION IF EXISTS thread_insert( CITEXT, TIMESTAMPTZ, CITEXT, TEXT, CITEXT, TEXT );
-DROP FUNCTION IF EXISTS post_insert( CITEXT, TIMESTAMPTZ, INTEGER, INTEGER, TEXT, INTEGER, INTEGER );
 DROP FUNCTION IF EXISTS update_or_insert_votes( INTEGER, INTEGER, INTEGER );
 
 CREATE EXTENSION IF NOT EXISTS CITEXT;
@@ -100,7 +99,8 @@ CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx
 CREATE TABLE IF NOT EXISTS votes (
   user_id   INTEGER REFERENCES users (id) ON DELETE CASCADE,
   thread_id INTEGER REFERENCES threads (id) ON DELETE CASCADE,
-  voice     INTEGER DEFAULT 0
+  voice     INTEGER DEFAULT 0,
+  CONSTRAINT user_thread_unique_pair UNIQUE (user_id, thread_id)
 );
 
 CREATE OR REPLACE FUNCTION thread_insert(thread_author  CITEXT, thread_created TIMESTAMPTZ, forum_slug CITEXT,
@@ -140,52 +140,12 @@ BEGIN
 END;
 ' LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION post_insert(post_author    CITEXT, post_created TIMESTAMPTZ, post_forum_id INTEGER,
-                                       post_id        INTEGER, post_message TEXT, post_parent INTEGER,
-                                       post_thread_id INTEGER)
-  RETURNS VOID AS '
-DECLARE
-  post_user_id INTEGER;
-  mat_path     INTEGER [];
-BEGIN
-  SELECT id
-  FROM users
-  WHERE nickname = post_author
-  INTO post_user_id;
-  --
-  SELECT path
-  FROM posts
-  WHERE id = post_parent
-  INTO mat_path;
-  --
-  INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path, root_id)
-  VALUES (post_user_id, post_created, post_forum_id, post_id, post_message, post_parent, post_thread_id,
-          array_append(mat_path, post_id),
-          CASE WHEN post_parent = 0
-            THEN post_id
-          ELSE mat_path [1] END);
-  --
-  INSERT INTO forum_users (user_id, forum_id) VALUES (post_user_id, post_forum_id);
-END;
-' LANGUAGE plpgsql;
-
 CREATE OR REPLACE FUNCTION update_or_insert_votes(vote_user_id INTEGER, vote_thread_it INTEGER, vote_value INTEGER)
   RETURNS VOID AS '
-DECLARE
-  count INTEGER;
 BEGIN
-  SELECT COUNT(*)
-  FROM votes
-  WHERE user_id = vote_user_id AND thread_id = vote_thread_it
-  INTO count;
-  IF count > 0
-  THEN
-    UPDATE votes
-    SET voice = vote_value
-    WHERE user_id = vote_user_id AND thread_id = vote_thread_it;
-  ELSE
-    INSERT INTO votes (user_id, thread_id, voice) VALUES (vote_user_id, vote_thread_it, vote_value);
-  END IF;
+  INSERT INTO votes (user_id, thread_id, voice) VALUES (vote_user_id, vote_thread_it, vote_value)
+  ON CONFLICT (user_id, thread_id)
+    DO UPDATE SET voice = vote_value;
   UPDATE threads
   SET votes = (SELECT SUM(voice)
                FROM votes

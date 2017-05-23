@@ -5,9 +5,12 @@ package db_project.Queries;
  */
 public class PostQueries {
     public static String createPostsQuery() {
-        return "INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path) VALUES(" +
-                "(SELECT id FROM users WHERE nickname = ?), ?, ?, ?, ?, ?, ?, " +
-                "array_append((SELECT path FROM posts WHERE id = ?), ?))";
+        return "INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path, root_id) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, array_append((SELECT path FROM posts WHERE id = ?), ?), ?)";
+    }
+
+    public static String insertIntoForumUsers() {
+        return "INSERT INTO forum_users (user_id, forum_id) VALUES (?, ?)";
     }
 
     public static String getPostQuery() {
