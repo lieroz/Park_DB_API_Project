@@ -46,12 +46,13 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
                     postsPrepared.setString(5, post.getMessage());
                     postsPrepared.setInt(6, post.getParent());
                     postsPrepared.setInt(7, threadId);
-                    postsPrepared.setInt(8, post.getParent());
                     postsPrepared.setInt(9, postId);
                     if (post.getParent() == 0) {
+                        postsPrepared.setArray(8, null);
                         postsPrepared.setInt(10, postId);
                     } else {
                         final Array path = getJdbcTemplate().queryForObject("SELECT path FROM posts WHERE id = ?", Array.class, post.getParent());
+                        postsPrepared.setArray(8, path);
                         postsPrepared.setInt(10, ((Integer[]) path.getArray())[0]);
                     }
                     postsPrepared.addBatch();

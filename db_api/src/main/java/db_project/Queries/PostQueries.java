@@ -6,7 +6,7 @@ package db_project.Queries;
 public class PostQueries {
     public static String createPostsQuery() {
         return "INSERT INTO posts (user_id, created, forum_id, id, message, parent, thread_id, path, root_id) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, array_append((SELECT path FROM posts WHERE id = ?), ?), ?)";
+                "VALUES(?, ?, ?, ?, ?, ?, ?, array_append(?, ?), ?)";
     }
 
     public static String insertIntoForumUsers() {
