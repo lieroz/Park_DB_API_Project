@@ -2,6 +2,7 @@ package db_project.DAO;
 
 import db_project.Views.PostDetailedView;
 import db_project.Views.PostView;
+import db_project.Views.ThreadView;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public interface PostDAO {
     PostView update(String message, Integer id);
     PostView findById(Integer id);
     PostDetailedView detailedView(Integer id, String[] related);
-    List<PostView> sort(Integer limit, Integer offset, String sort, Boolean desc, String slug_or_id);
+    List<PostView> sort(ThreadView thread, String slug_or_id, Integer limit, Integer since, String sort, Boolean desc);
     Integer count();
     void clear();
 }

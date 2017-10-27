@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -123,21 +124,29 @@ public class JdbcPostDAO extends JdbcInferiorDAO implements PostDAO {
     }
 
     @Override
-    public List<PostView> sort(final Integer limit, final Integer offset, final String sort,
-                               final Boolean desc, final String slug_or_id) {
-        switch (sort) {
-            case "flat":
-                return getJdbcTemplate().query(PostQueries.postsFlatSortQuery(slug_or_id, desc),
-                        new Object[]{slug_or_id, limit, offset}, readPost);
-            case "tree":
-                return getJdbcTemplate().query(PostQueries.postsTreeSortQuery(slug_or_id, desc),
-                        new Object[]{slug_or_id, limit, offset}, readPost);
-            case "parent_tree":
-                return getJdbcTemplate().query(PostQueries.postsParentTreeSortQuery(slug_or_id, desc),
-                        new Object[]{slug_or_id, limit, offset}, readPost);
-            default:
-                throw new NullPointerException();
+    public List<PostView> sort(final ThreadView thread, final String slug_or_id, final Integer limit, final Integer since, final String sort, final Boolean desc) {
+        List<Object> arguments = new ArrayList<>();
+        arguments.add(thread.getId());
+        if (since != null) {
+            arguments.add(since);
         }
+        if (limit != null) {
+            arguments.add(limit);
+        }
+        if (sort == null) {
+            return getJdbcTemplate().query(PostQueries.getPostsFlat(limit, since, desc), arguments.toArray(), readPost);
+        }
+        switch (sort) {
+            case "flat" :
+                return getJdbcTemplate().query(PostQueries.getPostsFlat(limit, since, desc), arguments.toArray(), readPost);
+            case "tree" :
+                return getJdbcTemplate().query(PostQueries.getPostsTree(limit,since,desc), arguments.toArray(), readPost);
+            case "parent_tree" :
+                return getJdbcTemplate().query(PostQueries.getPostsParentTree(limit, since, desc), arguments.toArray(), readPost);
+            default:
+                break;
+        }
+        return getJdbcTemplate().query(PostQueries.getPostsFlat(limit, since, desc), arguments.toArray(), readPost);
     }
 
     @Override

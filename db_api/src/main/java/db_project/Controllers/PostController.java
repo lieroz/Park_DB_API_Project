@@ -1,5 +1,6 @@
 package db_project.Controllers;
 
+import db_project.Views.ErrorView;
 import db_project.Views.PostDetailedView;
 import db_project.Views.PostView;
 import org.springframework.dao.DataAccessException;
@@ -15,24 +16,24 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/post/{id}")
 public class PostController extends InferiorController {
     @RequestMapping(value = "/details", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PostDetailedView> viewForum(
+    public ResponseEntity<Object> viewForum(
             @RequestParam(value = "related", required = false) String[] related, @PathVariable("id") final Integer id) {
         final PostDetailedView post;
         try {
             post = jdbcPostDAO.detailedView(id, related);
         } catch (DataAccessException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorView(ex.getLocalizedMessage()));
         }
         return ResponseEntity.status(HttpStatus.OK).body(post);
     }
 
     @RequestMapping(value = "/details", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PostView> viewForum(@RequestBody PostView post, @PathVariable("id") final Integer id) {
+    public ResponseEntity<Object> viewForum(@RequestBody PostView post, @PathVariable("id") final Integer id) {
         try {
             post = post.getMessage() != null ? jdbcPostDAO.update(post.getMessage(), id) : jdbcPostDAO.findById(id);
         } catch (DataAccessException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorView(ex.getLocalizedMessage()));
         }
         return ResponseEntity.status(HttpStatus.OK).body(post);
     }
